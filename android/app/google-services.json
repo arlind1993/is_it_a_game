@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "664897908568",
+    "project_id": "isitagame-44725",
+    "storage_bucket": "isitagame-44725.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:664897908568:android:d6da51c8f15ef6ed7eff2d",
+        "android_client_info": {
+          "package_name": "com.infiniteeons.isitagame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "664897908568-echgf3dt0comhaktil41i8ddkgmsd0l2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVUrctjcRVyZ-jLSJUpAvU6eHGAuj87XE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "664897908568-echgf3dt0comhaktil41i8ddkgmsd0l2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
