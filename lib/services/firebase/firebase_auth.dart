@@ -122,12 +122,9 @@ class FirebaseAuthUser {
               'profile'
             ]
         );
-        log("Here2");
         GoogleSignInAccount? googleUser;
         googleUser = await s.signOut();
-        log("Here3");
         googleUser = await s.signIn();
-        log("Here3");
 
         if (googleUser == null) {
           return null;
