@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:game_template/provider/app_lifecycle.dart';
 import 'package:game_template/provider/settings_controller.dart';
 import 'package:game_template/screens/game_selector.dart';
+import 'package:game_template/screens/games/chess/chess_logic.dart';
+import 'package:game_template/screens/games/chess/chess_play_board.dart';
 import 'package:game_template/screens/games/chess/chess_play_screen.dart';
 import 'package:game_template/screens/games/chess/main_chess_screen.dart';
 import 'package:game_template/screens/games/murlan/murlan.dart';
@@ -61,6 +63,7 @@ void guardedMain() {
     SystemUiMode.edgeToEdge,
   );
   getItSetUp();
+
   runApp(
     MyApp(),
   );

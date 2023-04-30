@@ -1,106 +1,88 @@
 import 'dart:collection';
 
-class Location extends LinkedListEntry<Location>{
+import 'package:game_template/screens/games/chess/chess_logic.dart';
+
+class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable{
   int rank;
   int file;
-  bool get inside => (rank >= 1 && rank <= 8) && (file >= 1 && file <= 8);
+  bool get inside => (rank >= 1 && rank <= ChessBoardState.SQUARE) && (file >= 1 && file <= ChessBoardState.SQUARE);
   String get nameConvention => inside ? String.fromCharCode(96 + file) + rank.toString() : "outside";
 
-  Location({
+  ChessLocation({
     required this.rank,
     required this.file,
   });
+
+  @override
+  int compareTo(other) {
+    if(!inside){
+      throw "outside compare to";
+    }
+    if(other is ChessLocation) {
+      return (ChessBoardState.SQUARE - rank) * ChessBoardState.SQUARE + (file) -
+          (ChessBoardState.SQUARE - other.rank) * ChessBoardState.SQUARE + (other.file);
+    }
+    throw "Non Location type error";
+  }
+
+  bool operator ==(Object other) => this.compareTo(other) == 0;
+  bool operator >(Object other) => this.compareTo(other) > 0;
+  bool operator >=(Object other) => this.compareTo(other) >= 0;
+  bool operator <(Object other) => this.compareTo(other) < 0;
+  bool operator <=(Object other) => this.compareTo(other) <= 0;
+
+  @override
+  int get hashCode => super.hashCode;
+
+  @override
+  String toString() {
+    return nameConvention;
+  }
 }
 
-class Piece{
+enum ChessPieceType{
+  Pawn,
+  Bishop,
+  Knight,
+  Rook,
+  Queen,
+  King,
+}
+
+class ChessPiece{
   bool isWhite;
   bool eaten;
-  Location location;
-  Piece({
+  ChessLocation location;
+  ChessPieceType pieceType;
+
+  String get pieceCode {
+    switch(pieceType){
+      case ChessPieceType.Pawn: return "p";
+      case ChessPieceType.Bishop: return "b";
+      case ChessPieceType.Knight: return "n";
+      case ChessPieceType.Rook: return "r";
+      case ChessPieceType.Queen: return "q";
+      case ChessPieceType.King: return "k";
+    }
+  }
+
+  String get pieceCodeColor => isWhite ? pieceCode.toUpperCase() : pieceCode;
+
+  ChessPiece({
     required this.location,
     required this.isWhite,
+    required this.pieceType,
     this.eaten = false,
   });
 
-
-}
-
-class Rook extends Piece{
-  int doubleMoveAllowed;
-  List<LinkedList<Location>> get pieceBySelfAllMoves {
-    List<LinkedList<Location>> res = [];
-    return res;
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "CP{type: $pieceCodeColor, location: $location}";
   }
-  Rook({
-    required super.location,
-    required super.isWhite,
-    super.eaten = false,
-  }): doubleMoveAllowed = isWhite ? 2 : 7;
 
 }
 
-class Bishop extends Piece{
-  int doubleMoveAllowed;
-  List<LinkedList<Location>> get pieceBySelfAllMoves {
-    List<LinkedList<Location>> res = [];
-    return res;
-  }
-  Bishop({
-    required super.location,
-    required super.isWhite,
-    super.eaten = false,
-  }): doubleMoveAllowed = isWhite ? 2 : 7;
-
-}
-class Knight extends Piece{
-  int doubleMoveAllowed;
-  List<LinkedList<Location>> get pieceBySelfAllMoves {
-    List<LinkedList<Location>> res = [];
-    return res;
-  }
-  Knight({
-    required super.location,
-    required super.isWhite,
-    super.eaten = false,
-  }): doubleMoveAllowed = isWhite ? 2 : 7;
-
-}
-class King extends Piece{
-  int doubleMoveAllowed;
-  List<LinkedList<Location>> get pieceBySelfAllMoves {
-    List<LinkedList<Location>> res = [];
-    return res;
-  }
-  King({
-    required super.location,
-    required super.isWhite,
-    super.eaten = false,
-  }): doubleMoveAllowed = isWhite ? 2 : 7;
-
-}
-class Queen extends Piece{
-  int doubleMoveAllowed;
-  List<LinkedList<Location>> get pieceBySelfAllMoves {
-    List<LinkedList<Location>> res = [];
-    return res;
-  }
-  Queen({
-    required super.location,
-    required super.isWhite,
-    super.eaten = false,
-  }): doubleMoveAllowed = isWhite ? 2 : 7;
-
-}
-class Pawn extends Piece{
-  int doubleMoveAllowed;
-  List<LinkedList<Location>> get pieceBySelfAllMoves {
-    List<LinkedList<Location>> res = [];
-    return res;
-  }
-  Pawn({
-    required super.location,
-    required super.isWhite,
-    super.eaten = false,
-  }): doubleMoveAllowed = isWhite ? 2 : 7;
-
-}
+// class Movement{
+//
+// }

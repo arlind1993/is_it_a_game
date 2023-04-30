@@ -8,6 +8,7 @@ class ChessPlayScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        SizedBox(height: 30,),
         ChessPlayBoard(key: Key("chess board")),
         Expanded(
           child: Container()

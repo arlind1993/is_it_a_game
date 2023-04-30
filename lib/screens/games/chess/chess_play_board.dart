@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:game_template/screens/games/chess/chess_logic.dart';
+import 'package:game_template/screens/games/chess/chess_piece_builder.dart';
+import 'package:game_template/screens/games/chess/piece_logic.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
 
-class ChessPlayBoard extends StatelessWidget {
-  static const int square = 8;
-  const ChessPlayBoard({super.key});
 
+class ChessPlayBoard extends StatefulWidget {
+  late ChessBoardState importBoard;
+  ChessPlayBoard({
+    super.key,
+    ChessBoardState? import,
+  }){
+    importBoard = import ?? ChessBoardState();
+  }
+
+  @override
+  State<ChessPlayBoard> createState() => _ChessPlayBoardState();
+}
+
+class _ChessPlayBoardState extends State<ChessPlayBoard> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -18,13 +32,13 @@ class ChessPlayBoard extends StatelessWidget {
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(square, (rankIndex){
+                children: List.generate(ChessBoardState.SQUARE, (rankIndex){
                   return Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: List.generate(square, (fileIndex){
+                    children: List.generate(ChessBoardState.SQUARE, (fileIndex){
                       return Container(
-                        width: screenSize/square,
-                        height: screenSize/square,
+                        width: screenSize/ChessBoardState.SQUARE,
+                        height: screenSize/ChessBoardState.SQUARE,
                         color: (rankIndex + fileIndex) % 2 == 0
                           ? getIt<AppColor>().beigeMain
                           : getIt<AppColor>().brownMain,
@@ -33,58 +47,20 @@ class ChessPlayBoard extends StatelessWidget {
                   );
                 }),
               ),
-              Row(
-                children: [
-                  Draggable<String>(
-                    data: "king",
-                    feedback:Container(
-                       width: screenSize/square,
-                       height: screenSize/square,
-                       color: getIt<AppColor>().darkMain,
-                    ),
-                    child: Container(
-                      width: screenSize/square,
-                      height: screenSize/square,
-                      color: getIt<AppColor>().lightMain,
-                    ),
-                    childWhenDragging: Container(
-                      width: screenSize/square,
-                      height: screenSize/square,
-                      color: getIt<AppColor>().brownSecondary,
-                    ),
-                  ),
-                ],
-              ),
-              DragTarget(
-                onAccept: (data) {
-
-                },
-                builder: (context, candidateData, rejectedData) {
-                  return Container(
-                    margin: EdgeInsets.only(left: screenSize/square),
-                    width: screenSize/square,
-                    height: screenSize/square,
-                    color: Colors.red,
-                  );
-                },
-              ),
-              DragTarget(
-                onAccept: (data) {
-
-                },
-                builder: (context, candidateData, rejectedData) {
-                  return Container(
-                    margin: EdgeInsets.only(left: screenSize/square * 2),
-                    width: screenSize/square,
-                    height: screenSize/square,
-                    color: Colors.red,
-                  );
-                },
-              )
+              ..._showPieces(widget.importBoard),
             ],
           )
         );
       }
     );
+  }
+
+  List<Widget> _showPieces(ChessBoardState importBoard) {
+    List<Widget> pieces = [];
+
+    for(ChessPiece p in importBoard.gamePieces.where((element) => !element.eaten)){
+      pieces.add(ChessPieceBuilder(chessBoardState: importBoard, currPiece: p,));
+    }
+    return pieces;
   }
 }
