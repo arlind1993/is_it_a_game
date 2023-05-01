@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/games/chess/chess_play_board.dart';
 
-class ChessPlayScreen extends StatelessWidget {
-  const ChessPlayScreen({super.key});
+import 'widget/chess_play_board.dart';
+
+class ChessInitScreen extends StatelessWidget {
+  const ChessInitScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

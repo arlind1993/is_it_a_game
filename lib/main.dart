@@ -8,10 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:game_template/provider/app_lifecycle.dart';
 import 'package:game_template/provider/settings_controller.dart';
 import 'package:game_template/screens/game_selector.dart';
-import 'package:game_template/screens/games/chess/chess_logic.dart';
-import 'package:game_template/screens/games/chess/chess_play_board.dart';
-import 'package:game_template/screens/games/chess/chess_play_screen.dart';
 import 'package:game_template/screens/games/chess/main_chess_screen.dart';
+import 'package:game_template/screens/games/chess/chess_init_screen.dart';
 import 'package:game_template/screens/games/murlan/murlan.dart';
 import 'package:game_template/screens/games/poker/poker.dart';
 import 'package:game_template/screens/games/sudoku/sudoku.dart';
@@ -104,7 +102,7 @@ class MyApp extends StatelessWidget {
                         path: 'play',
                         pageBuilder: (context, state) {
                           return getIt<CustomTransitionBuilder>().build<void>(
-                            child: ChessPlayScreen(
+                            child: ChessInitScreen(
                               key: const Key('chess play'),
                             ),
                             color: getIt<AppColor>().greenContrast,

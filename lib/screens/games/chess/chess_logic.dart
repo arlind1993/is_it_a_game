@@ -1,4 +1,4 @@
-import 'package:game_template/screens/games/chess/piece_logic.dart';
+import 'package:game_template/screens/games/chess/chess_piece_logic.dart';
 
 enum ChessGameState{
   WhiteWin,
@@ -24,6 +24,9 @@ class ChessBoardState{
   bool inCheckBlack = false;
   late String actualFen;
   ChessGameState gameState = ChessGameState.None;
+
+  List<ChessPiece> get aliveGamePieces => gamePieces.where((element) => !element.eaten).toList();
+  List<ChessPiece> get deadGamePieces => gamePieces.where((element) => element.eaten).toList();
 
 
   ChessBoardState({

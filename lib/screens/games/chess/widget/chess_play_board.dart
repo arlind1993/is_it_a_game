@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:game_template/screens/games/chess/chess_logic.dart';
-import 'package:game_template/screens/games/chess/chess_piece_builder.dart';
-import 'package:game_template/screens/games/chess/piece_logic.dart';
+import 'package:game_template/screens/games/chess/widget/chess_board_builder.dart';
+import 'package:game_template/screens/games/chess/widget/chess_piece_builder.dart';
+import 'package:game_template/screens/games/chess/chess_piece_logic.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
 
@@ -47,20 +48,13 @@ class _ChessPlayBoardState extends State<ChessPlayBoard> {
                   );
                 }),
               ),
-              ..._showPieces(widget.importBoard),
+              Positioned.fill(
+                child: ChessBoardBuilder(chessBoardState: widget.importBoard)
+              ),
             ],
           )
         );
       }
     );
-  }
-
-  List<Widget> _showPieces(ChessBoardState importBoard) {
-    List<Widget> pieces = [];
-
-    for(ChessPiece p in importBoard.gamePieces.where((element) => !element.eaten)){
-      pieces.add(ChessPieceBuilder(chessBoardState: importBoard, currPiece: p,));
-    }
-    return pieces;
   }
 }
