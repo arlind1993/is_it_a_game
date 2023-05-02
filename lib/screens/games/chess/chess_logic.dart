@@ -1,3 +1,4 @@
+
 import 'package:game_template/screens/games/chess/chess_piece_logic.dart';
 
 enum ChessGameState{
@@ -16,7 +17,7 @@ class ChessBoardState{
   late bool blackKingSide;
   late bool whiteQueenSide;
   late bool whiteKingSide;
-  ChessPiece? lastEnPassantMove;
+  ChessLocation? lastEnPassantMove;
   List<ChessPiece> gamePieces = [];
   late int halfMovesFromCoPM;
   late int totalFullMoves;
@@ -58,6 +59,7 @@ class ChessBoardState{
       blackQueenSide = castlingRights.contains("q");
       halfMovesFromCoPM = int.parse(halfMove);
       totalFullMoves = int.parse(fullMove);
+      lastEnPassantMove = enPassantPlayed == "-" ? null : ChessLocation.fromChessNotation(enPassantPlayed);
 
       fenPieceParser(piecePlacement);
     }else{
@@ -71,7 +73,6 @@ class ChessBoardState{
     if(fenPieceInRanks.length == SQUARE){
       int rank = 1;
       for(int i = 0 ; i < fenPieceInRanks.length; i++){
-
         rank = 8-i;
         int file = 1;
         for(int j = 0; j < fenPieceInRanks[i].length; j++) {
@@ -180,10 +181,10 @@ class ChessBoardState{
       bufferResult.write("-");
     }
     bufferResult.write(" ");
-    if(lastEnPassantMove == null || lastEnPassantMove?.location.inside == true) {
+    if(lastEnPassantMove == null || lastEnPassantMove?.inside == true) {
       bufferResult.write("-");
     }else{
-      bufferResult.write(lastEnPassantMove!.location.nameConvention);
+      bufferResult.write(lastEnPassantMove!.nameConvention);
     }
     bufferResult.write(" ");
     bufferResult.write("$halfMovesFromCoPM");
@@ -191,6 +192,17 @@ class ChessBoardState{
     bufferResult.write("$totalFullMoves");
 
     return bufferResult.toString();
+  }
+
+  @override
+  String toString() {
+    return {
+      "gs": this.gameState.name,
+      "pieces": this.gamePieces,
+      "enPass?": this.lastEnPassantMove,
+      "turn":this.isWhiteTurn ? "white": "black",
+      "fen":this.actualFen
+    }.toString();
   }
 }
 

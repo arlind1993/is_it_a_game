@@ -1,16 +1,18 @@
+
 import 'package:flutter/material.dart';
 import 'package:game_template/screens/games/chess/widget/chess_piece_builder.dart';
+import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
 import '../chess_global.dart';
 import '../chess_logic.dart';
 import '../chess_piece_logic.dart';
+import '../chess_piece_logic.dart';
 
 class ChessBoardBuilder extends StatefulWidget {
-
-
   ChessBoardState chessBoardState;
   ChessBoardBuilder({
     required this.chessBoardState,
+
     super.key
   });
 
@@ -20,7 +22,8 @@ class ChessBoardBuilder extends StatefulWidget {
 
 class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
   Logger _logger = Logger("Chess board builder");
-  ChessPiece? actualPieceSelected;
+  ValueNotifier<ChessPiece?> actualPieceSelected = ValueNotifier(null);
+  ValueNotifier<MapEntry<ChessPiece,Offset>?> actualPieceOffset = ValueNotifier(null);
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -28,34 +31,132 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
         return Listener(
           behavior: HitTestBehavior.translucent,
           onPointerDown: (event) {
-            if(actualPieceSelected == null){
-              ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
-              if(location != null) {
-                actualPieceSelected = widget.chessBoardState.aliveGamePieces.firstWhere((element) => element.location == location,orElse: () => ChessPiece(location: ChessLocation(file: 0, rank: 0), isWhite: true, pieceType: ChessPieceType.Pawn),);
-              }
-            }else{
-              actualPieceSelected = null;
-            }
             _logger.info("onPointerDown: ${event.localPosition}");
+
+            ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
+            if(location != null) {// outside Board
+              ChessPiece? currPiece = widget.chessBoardState.gamePieces.firstWhereIfThere((element) {
+                return element.location == location && !element.eaten;
+              });
+              if(currPiece!=null){// onTop of actual Piece
+                if(actualPieceOffset.value==null) actualPieceOffset.value = MapEntry(currPiece, event.localPosition);
+                if(currPiece == actualPieceSelected.value){
+                    actualPieceSelected.value = null;
+                }else{
+                  actualPieceSelected.value = currPiece;
+                }
+              }else{
+                actualPieceSelected.value = null;
+                actualPieceOffset.value = null;
+              }
+            }else{//notOnTop of actual Piece
+              actualPieceSelected.value = null;
+              actualPieceOffset.value = null;
+            }
           },
           onPointerUp: (event) {
             _logger.info("onPointerUp: ${event.localPosition}");
+            if(actualPieceOffset.value != null){
+
+            }
+            actualPieceOffset.value = null;
           },
           onPointerMove: (event) {
-            _logger.info("onPointerMove: ${event.localPosition}");
+            //_logger.info("onPointerMove: ${event.localPosition}");
+            if(actualPieceSelected.value == null){
+              ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
+              ChessPiece? currPiece = widget.chessBoardState.gamePieces.firstWhereIfThere((element) {
+                return element.location == location;
+              });
+              actualPieceSelected.value = currPiece;
+            }
+
+            if(actualPieceSelected.value != null){
+              actualPieceOffset.value = MapEntry(actualPieceSelected.value!, event.localPosition);
+            }
           },
           child: Stack(
             children: [
-
+              ValueListenableBuilder(//Actual Highlighted Piece
+                valueListenable: actualPieceSelected,
+                builder: (context, value, child){
+                  //_logger.warning(value);
+                  if(value==null){
+                    return Container();
+                  }
+                  return Positioned(
+                    bottom: (value.location.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                    left: (value.location.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                    child: Container(
+                      width: constraint.maxWidth / ChessBoardState.SQUARE,
+                      height: constraint.maxWidth / ChessBoardState.SQUARE,
+                      color: Color(0xb8aad501),
+                    ),
+                  );
+                }
+              ),
+              ValueListenableBuilder(// Possible Moves
+                  valueListenable: actualPieceSelected,
+                  builder: (context, value, child){
+                    if(value==null){
+                      return Container();
+                    }
+                    List<ChessLocation> possibleMoves = Movement.getPossibleMovesForPiece(value, widget.chessBoardState);
+                    return Positioned.fill(
+                      child: Stack(
+                        children: [
+                          ...possibleMoves.map((e){
+                            return Positioned(
+                              bottom: (e.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                              left: (e.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                              child: Container(
+                                width: constraint.maxWidth / ChessBoardState.SQUARE,
+                                height: constraint.maxWidth / ChessBoardState.SQUARE,
+                                alignment: Alignment.center,
+                                child: Container(
+                                  width: constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                                  height: constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                                  decoration: BoxDecoration(
+                                    color: Color(0x88888888),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    );
+                  }
+              ),
               ...widget.chessBoardState.aliveGamePieces.map((e) {
-                return Positioned(
-                  bottom: (e.location.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
-                  left: (e.location.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
-                  child: Container(
-                    width: constraint.maxWidth / ChessBoardState.SQUARE,
-                    height: constraint.maxWidth / ChessBoardState.SQUARE,
-                    child: chessPiecePictures[e.pieceCodeColor]!,
-                  ),
+                return ValueListenableBuilder(
+                  valueListenable: actualPieceOffset,
+                  builder: (context, value, child) {
+                    if(actualPieceSelected.value == null || actualPieceSelected.value != e || value == null){
+                      return Positioned(
+                        bottom: (e.location.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                        left: (e.location.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                        child: Container(
+                          width: constraint.maxWidth / ChessBoardState.SQUARE,
+                          height: constraint.maxWidth / ChessBoardState.SQUARE,
+                          child: chessPiecePictures[e.pieceCodeColor]!,
+                        ),
+                      );
+                    }
+                    return Positioned(
+                      top: value.value.dy - constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                      left: value.value.dx - constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                      child: Opacity(
+                        opacity: 0.9,
+                        child: Container(
+                          width: constraint.maxWidth / ChessBoardState.SQUARE,
+                          height: constraint.maxWidth / ChessBoardState.SQUARE,
+                          child: chessPiecePictures[e.pieceCodeColor]!,
+                        ),
+                      ),
+                    );
+                  },
                 );
               }),
             ]
@@ -66,7 +167,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
   }
 
   ChessLocation? _listenerToLocation(Offset pos, boardSize){
-    print(boardSize);
+    //print(boardSize);
     if(pos.dx < 0 || pos.dx > boardSize || pos.dy < 0 || pos.dy > boardSize){
       return null;
     }
