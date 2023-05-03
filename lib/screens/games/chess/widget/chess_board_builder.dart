@@ -1,11 +1,8 @@
-
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/games/chess/widget/chess_piece_builder.dart';
 import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
 import '../chess_global.dart';
 import '../chess_logic.dart';
-import '../chess_piece_logic.dart';
 import '../chess_piece_logic.dart';
 
 class ChessBoardBuilder extends StatefulWidget {
@@ -31,13 +28,13 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
         return Listener(
           behavior: HitTestBehavior.translucent,
           onPointerDown: (event) {
-            _logger.info("onPointerDown: ${event.localPosition}");
+            //_logger.info("onPointerDown: ${event.localPosition}");
 
             ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
             if(location != null) {// outside Board
-              ChessPiece? currPiece = widget.chessBoardState.gamePieces.firstWhereIfThere((element) {
-                return element.location == location && !element.eaten;
-              });
+              ChessPiece? currPiece = Movement.getFirstAlivePieceIfInLocation(
+                  widget.chessBoardState.gamePieces, location);
+
               if(currPiece!=null){// onTop of actual Piece
                 if(actualPieceOffset.value==null) actualPieceOffset.value = MapEntry(currPiece, event.localPosition);
                 if(currPiece == actualPieceSelected.value){
@@ -55,7 +52,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
             }
           },
           onPointerUp: (event) {
-            _logger.info("onPointerUp: ${event.localPosition}");
+            //_logger.info("onPointerUp: ${event.localPosition}");
             if(actualPieceOffset.value != null){
 
             }
@@ -65,9 +62,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
             //_logger.info("onPointerMove: ${event.localPosition}");
             if(actualPieceSelected.value == null){
               ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
-              ChessPiece? currPiece = widget.chessBoardState.gamePieces.firstWhereIfThere((element) {
-                return element.location == location;
-              });
+              ChessPiece? currPiece = Movement.getFirstAlivePieceIfInLocation(widget.chessBoardState.gamePieces, location);
               actualPieceSelected.value = currPiece;
             }
 
@@ -101,28 +96,49 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
                     if(value==null){
                       return Container();
                     }
-                    List<ChessLocation> possibleMoves = Movement.getPossibleMovesForPiece(value, widget.chessBoardState);
+                    List<MapEntry<ChessLocation, ChessPiece?>> possibleMoves
+                      = Movement.getPossibleMovesForPiece(value, widget.chessBoardState);
                     return Positioned.fill(
                       child: Stack(
                         children: [
                           ...possibleMoves.map((e){
-                            return Positioned(
-                              bottom: (e.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
-                              left: (e.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
-                              child: Container(
-                                width: constraint.maxWidth / ChessBoardState.SQUARE,
-                                height: constraint.maxWidth / ChessBoardState.SQUARE,
-                                alignment: Alignment.center,
+                            if(e.value == null){
+                              return Positioned(
+                                bottom: (e.key.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                                left: (e.key.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
                                 child: Container(
-                                  width: constraint.maxWidth / ChessBoardState.SQUARE / 2,
-                                  height: constraint.maxWidth / ChessBoardState.SQUARE / 2,
-                                  decoration: BoxDecoration(
-                                    color: Color(0x88888888),
-                                    shape: BoxShape.circle,
+                                  width: constraint.maxWidth / ChessBoardState.SQUARE,
+                                  height: constraint.maxWidth / ChessBoardState.SQUARE,
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                                    height: constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                                    decoration: BoxDecoration(
+                                      color: Color(0x88888888),
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
+                              );
+                            }else{
+                              return Positioned(
+                                bottom: (e.key.rank - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                                left: (e.key.file - 1) * constraint.maxWidth / ChessBoardState.SQUARE,
+                                child: Container(
+                                  width: constraint.maxWidth / ChessBoardState.SQUARE,
+                                  height: constraint.maxWidth / ChessBoardState.SQUARE,
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                                    height: constraint.maxWidth / ChessBoardState.SQUARE / 2,
+                                    decoration: BoxDecoration(
+                                      color: Color(0x88D06800),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
                           }),
                         ],
                       ),
