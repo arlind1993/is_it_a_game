@@ -19,8 +19,30 @@ class ChessBoardBuilder extends StatefulWidget {
 
 class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
   Logger _logger = Logger("Chess board builder");
-  ValueNotifier<ChessPiece?> actualPieceSelected = ValueNotifier(null);
-  ValueNotifier<MapEntry<ChessPiece,Offset>?> actualPieceOffset = ValueNotifier(null);
+  late ValueNotifier<ChessPiece?> actualPieceSelected;
+  late ValueNotifier<MapEntry<ChessPiece,Offset>?> actualPieceOffset;
+  late ValueNotifier<ChessBoardState> actualChessBoard;
+
+  @override
+  void initState() {
+    actualPieceSelected = ValueNotifier(null);
+    actualPieceOffset = ValueNotifier(null);
+    actualChessBoard = ValueNotifier(widget.chessBoardState);
+    actualChessBoard.addListener(() {// When a move gets played
+      setState(() {
+
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    actualPieceSelected.dispose();
+    actualPieceOffset.dispose();
+    actualChessBoard.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -33,7 +55,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
             ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
             if(location != null) {// outside Board
               ChessPiece? currPiece = Movement.getFirstAlivePieceIfInLocation(
-                  widget.chessBoardState.gamePieces, location);
+                  actualChessBoard.value.gamePieces, location);
 
               if(currPiece!=null){// onTop of actual Piece
                 if(actualPieceOffset.value==null) actualPieceOffset.value = MapEntry(currPiece, event.localPosition);
@@ -62,7 +84,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
             //_logger.info("onPointerMove: ${event.localPosition}");
             if(actualPieceSelected.value == null){
               ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
-              ChessPiece? currPiece = Movement.getFirstAlivePieceIfInLocation(widget.chessBoardState.gamePieces, location);
+              ChessPiece? currPiece = Movement.getFirstAlivePieceIfInLocation(actualChessBoard.value.gamePieces, location);
               actualPieceSelected.value = currPiece;
             }
 
@@ -97,7 +119,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
                       return Container();
                     }
                     List<MapEntry<ChessLocation, ChessPiece?>> possibleMoves
-                      = Movement.getPossibleMovesForPiece(value, widget.chessBoardState);
+                      = Movement.getPossibleMovesForPiece(value, actualChessBoard.value);
                     return Positioned.fill(
                       child: Stack(
                         children: [
@@ -145,7 +167,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
                     );
                   }
               ),
-              ...widget.chessBoardState.aliveGamePieces.map((e) {
+              ...actualChessBoard.value.aliveGamePieces.map((e) {
                 return ValueListenableBuilder(
                   valueListenable: actualPieceOffset,
                   builder: (context, value, child) {

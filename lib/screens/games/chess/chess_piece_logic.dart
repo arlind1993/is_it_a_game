@@ -111,6 +111,8 @@ class ChessPiece{
 }
 
 class Movement{
+
+
   static Logger _logger = Logger("Movement");
 
   static ChessPiece? getFirstAlivePieceIfInLocation(List<ChessPiece> chessPieces, ChessLocation? location){
@@ -120,7 +122,11 @@ class Movement{
   }
 
 
+
+
   static bool isInCheck(bool isWhite){
+
+
     return false;
   }
 
@@ -132,16 +138,22 @@ class Movement{
         case ChessPieceType.Pawn:
           List<MapEntry<ChessLocation, ChessPiece?>> pawnLocations= [];
           if(gameState.lastEnPassantMove!=null){//en passant move
-            ChessPiece? lastEnPassantMovedPiece = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, gameState.lastEnPassantMove);
-            if(lastEnPassantMovedPiece !=null && !lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == gameState.lastEnPassantMove!.rank
-                && (chessPiece.location.file - gameState.lastEnPassantMove!.file).abs() == 1
+            ChessLocation actualLocEnPassantPiece = ChessLocation(
+              rank : gameState.lastEnPassantMove!.rank - 1,
+              file : gameState.lastEnPassantMove!.file
+            );
+            ChessPiece? lastEnPassantMovedPiece = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, actualLocEnPassantPiece );
+            _logger.warning("En passant: $lastEnPassantMovedPiece");
+            if(lastEnPassantMovedPiece !=null && !lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
+                && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
                 MapEntry(
                   ChessLocation(
                     rank: chessPiece.location.rank + 1,
                     file: gameState.lastEnPassantMove!.file
-                ), lastEnPassantMovedPiece)
+                  ), lastEnPassantMovedPiece
+                )
               );//enPassantMove if possible added
             }
           }
@@ -156,19 +168,20 @@ class Movement{
 
           //add forwardMove if not blocked;
           bool firstMovePossible = !gameState.gamePieces.any((element) {
-            return !element.eaten
+            return !element.eaten && chessPiece.location.file == element.location.file
                 && chessPiece.location.rank + 1 == element.location.rank;
           });
-          bool secondMovePossible = chessPiece.location.rank == 2 && !gameState.gamePieces.any((element) {
-            return !element.eaten
+          bool secondMovePossible = chessPiece.location.rank == 2 &&
+          !gameState.gamePieces.any((element) {
+            return !element.eaten && chessPiece.location.file == element.location.file
                 && chessPiece.location.rank + 2 == element.location.rank;
           });
 
-          if(secondMovePossible){
+          if(firstMovePossible){
             pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file), null));
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 2, file: chessPiece.location.file), null));
-          }else if(firstMovePossible){
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file), null));
+            if(secondMovePossible){
+              pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 2, file: chessPiece.location.file), null));
+            }
           }
 
           return pawnLocations.where((element) => element.key.inside).toList();
@@ -530,7 +543,7 @@ class Movement{
           }
           return queenMoves;
         case ChessPieceType.King:
-          List<ChessLocation> knightJumps = [
+          List<ChessLocation> kingJumps = [
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file - 1),
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 0),
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 1),
@@ -540,18 +553,79 @@ class Movement{
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 0),
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 1),
           ];
-          List<MapEntry<ChessLocation, ChessPiece?>> knightLocations = [];
-          for(ChessLocation location in knightJumps){
+          List<MapEntry<ChessLocation, ChessPiece?>> kingLocations = [];
+          for(ChessLocation location in kingJumps){
             ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
             if(pieceInLocation == null){
-              knightLocations.add(MapEntry(location, null));
+              kingLocations.add(MapEntry(location, null));
             }else{
               if(!pieceInLocation.isWhite){
-                knightLocations.add(MapEntry(location, pieceInLocation));
+                kingLocations.add(MapEntry(location, pieceInLocation));
               }
             }
           }
-          return knightLocations.where((element) => element.key.inside).toList();
+
+          if(gameState.whiteQueenSide){
+            List<MapEntry<ChessLocation, ChessPiece?>> queenSide = [];
+            bool blocked = false;
+            bool touchdown = false;
+            int dx = 2;
+            while(!blocked){
+              ChessLocation toThisLocation = ChessLocation(
+                  rank: chessPiece.location.rank,
+                  file: chessPiece.location.file - dx
+              );
+              if(!toThisLocation.inside){
+                blocked = true;
+              }
+              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              if(pieceStopping == null){
+                queenSide.add(MapEntry(toThisLocation, null));
+              }else{
+                if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
+                  queenSide.add(MapEntry(toThisLocation, null));
+                  touchdown = true;
+                }
+                blocked = true;
+              }
+              dx++;
+            }
+            if(touchdown){
+              kingLocations.addAll(queenSide);
+            }
+          }
+          if(gameState.whiteKingSide){
+            List<MapEntry<ChessLocation, ChessPiece?>> kingSide = [];
+            bool blocked = false;
+            bool touchdown = false;
+            int dx = 2;
+            while(!blocked){
+              ChessLocation toThisLocation = ChessLocation(
+                  rank: chessPiece.location.rank,
+                  file: chessPiece.location.file + dx
+              );
+              if(!toThisLocation.inside){
+                blocked = true;
+              }
+              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              if(pieceStopping == null){
+                kingSide.add(MapEntry(toThisLocation, null));
+              }else{
+                if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
+                  kingSide.add(MapEntry(toThisLocation, null));
+                  touchdown = true;
+                }
+                blocked = true;
+              }
+              dx++;
+            }
+            if(touchdown){
+              kingLocations.addAll(kingSide);
+            }
+          }
+
+
+          return kingLocations.where((element) => element.key.inside).toList();
       }
     }else if(!gameState.isWhiteTurn && !chessPiece.isWhite){//Moves for black
       _logger.fine("Moves only for black");
@@ -559,42 +633,50 @@ class Movement{
         case ChessPieceType.Pawn:
           List<MapEntry<ChessLocation, ChessPiece?>> pawnLocations= [];
           if(gameState.lastEnPassantMove!=null){//en passant move
-            ChessPiece? lastEnPassantMovedPiece = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, gameState.lastEnPassantMove);
-            if(lastEnPassantMovedPiece !=null && lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == gameState.lastEnPassantMove!.rank
-                && (chessPiece.location.file - gameState.lastEnPassantMove!.file).abs() == 1
+            ChessLocation actualLocEnPassantPiece = ChessLocation(
+                rank : gameState.lastEnPassantMove!.rank + 1,
+                file : gameState.lastEnPassantMove!.file
+            );
+            ChessPiece? lastEnPassantMovedPiece = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, actualLocEnPassantPiece);
+            _logger.warning("En passant: $lastEnPassantMovedPiece");
+            if(lastEnPassantMovedPiece !=null && lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
+                && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
                   MapEntry(
                       ChessLocation(
-                          rank: chessPiece.location.rank + 1,
+                          rank: chessPiece.location.rank - 1,
                           file: gameState.lastEnPassantMove!.file
-                      ), lastEnPassantMovedPiece)
+                      ), lastEnPassantMovedPiece
+                  )
               );//enPassantMove if possible added
             }
           }
+
           pawnLocations.addAll([
             ...gameState.gamePieces.where((element){
               return !element.eaten && element.isWhite
                   && (chessPiece.location.file - element.location.file).abs() == 1
-                  && chessPiece.location.rank + 1 == element.location.rank;
+                  && chessPiece.location.rank - 1 == element.location.rank;
             }).map((e) => MapEntry(e.location, e)).toList()
           ]);//the two adjacent pawns if there
 
           //add forwardMove if not blocked;
           bool firstMovePossible = !gameState.gamePieces.any((element) {
-            return !element.eaten
-                && chessPiece.location.rank + 1 == element.location.rank;
+            return !element.eaten && chessPiece.location.file == element.location.file
+                && chessPiece.location.rank - 1 == element.location.rank;
           });
-          bool secondMovePossible = chessPiece.location.rank == 2 && !gameState.gamePieces.any((element) {
-            return !element.eaten
-                && chessPiece.location.rank + 2 == element.location.rank;
-          });
+          bool secondMovePossible = chessPiece.location.rank == ChessBoardState.SQUARE - 1 &&
+              !gameState.gamePieces.any((element) {
+                return !element.eaten && chessPiece.location.file == element.location.file
+                    && chessPiece.location.rank - 2 == element.location.rank;
+              });
 
-          if(secondMovePossible){
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file), null));
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 2, file: chessPiece.location.file), null));
-          }else if(firstMovePossible){
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file), null));
+          if(firstMovePossible){
+            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file), null));
+            if(secondMovePossible){
+              pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file), null));
+            }
           }
 
           return pawnLocations.where((element) => element.key.inside).toList();
@@ -956,7 +1038,7 @@ class Movement{
           }
           return queenMoves;
         case ChessPieceType.King:
-          List<ChessLocation> knightJumps = [
+          List<ChessLocation> kingJumps = [
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file - 1),
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 0),
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 1),
@@ -966,18 +1048,78 @@ class Movement{
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 0),
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 1),
           ];
-          List<MapEntry<ChessLocation, ChessPiece?>> knightLocations = [];
-          for(ChessLocation location in knightJumps){
+          List<MapEntry<ChessLocation, ChessPiece?>> kingLocations = [];
+          for(ChessLocation location in kingJumps){
             ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
             if(pieceInLocation == null){
-              knightLocations.add(MapEntry(location, null));
+              kingLocations.add(MapEntry(location, null));
             }else{
-              if(pieceInLocation.isWhite){
-                knightLocations.add(MapEntry(location, pieceInLocation));
+              if(!pieceInLocation.isWhite){
+                kingLocations.add(MapEntry(location, pieceInLocation));
               }
             }
           }
-          return knightLocations.where((element) => element.key.inside).toList();
+
+          if(gameState.blackQueenSide){
+            List<MapEntry<ChessLocation, ChessPiece?>> queenSide = [];
+            bool blocked = false;
+            bool touchdown = false;
+            int dx = 2;
+            while(!blocked){
+              ChessLocation toThisLocation = ChessLocation(
+                  rank: chessPiece.location.rank,
+                  file: chessPiece.location.file - dx
+              );
+              if(!toThisLocation.inside){
+                blocked = true;
+              }
+              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              if(pieceStopping == null){
+                queenSide.add(MapEntry(toThisLocation, null));
+              }else{
+                if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
+                  queenSide.add(MapEntry(toThisLocation, null));
+                  touchdown = true;
+                }
+                blocked = true;
+              }
+              dx++;
+            }
+            if(touchdown){
+              kingLocations.addAll(queenSide);
+            }
+          }
+          if(gameState.blackKingSide){
+            List<MapEntry<ChessLocation, ChessPiece?>> kingSide = [];
+            bool blocked = false;
+            bool touchdown = false;
+            int dx = 2;
+            while(!blocked){
+              ChessLocation toThisLocation = ChessLocation(
+                  rank: chessPiece.location.rank,
+                  file: chessPiece.location.file + dx
+              );
+              if(!toThisLocation.inside){
+                blocked = true;
+              }
+              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              if(pieceStopping == null){
+                kingSide.add(MapEntry(toThisLocation, null));
+              }else{
+                if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
+                  kingSide.add(MapEntry(toThisLocation, null));
+                  touchdown = true;
+                }
+                blocked = true;
+              }
+              dx++;
+            }
+            if(touchdown){
+              kingLocations.addAll(kingSide);
+            }
+          }
+
+          return kingLocations.where((element) => element.key.inside).toList();
       }
     }
 

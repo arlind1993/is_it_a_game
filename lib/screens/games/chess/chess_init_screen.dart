@@ -13,7 +13,7 @@ class ChessInitScreen extends StatelessWidget {
         SizedBox(height: 30,),
         ChessPlayBoard(
           key: Key("chess board"),
-          import: ChessBoardState(initFen: "r3kbnr/p1p1q3/2np1p2/Pp3bpp/1P2p3/1QPPPNPB/1B1N1P1P/R3K2R w KQkq b6 0 13")
+          import: ChessBoardState(initFen: "r3kbnr/p1p1q3/2np1p2/Pp3bpp/1P2p3/1QPPPNPB/1B1N1P1P/R3K2R b KQkq b6 0 13")
         ),
         Expanded(
           child: Container()

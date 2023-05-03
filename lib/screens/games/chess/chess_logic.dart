@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:game_template/screens/games/chess/chess_piece_logic.dart';
 
 enum ChessGameState{
@@ -21,11 +22,10 @@ class ChessBoardState{
   List<ChessPiece> gamePieces = [];
   late int halfMovesFromCoPM;
   late int totalFullMoves;
-  bool inCheckWhite = false;
-  bool inCheckBlack = false;
-  late String actualFen;
   ChessGameState gameState = ChessGameState.None;
 
+
+  String get actualFen => toFen();
   List<ChessPiece> get aliveGamePieces => gamePieces.where((element) => !element.eaten).toList();
   List<ChessPiece> get deadGamePieces => gamePieces.where((element) => element.eaten).toList();
 
@@ -33,8 +33,7 @@ class ChessBoardState{
   ChessBoardState({
     String? initFen,
   }){
-    actualFen = initFen ?? defaultStartingFen;
-    fenParser(actualFen);
+    fenParser(initFen ?? defaultStartingFen);
   }
 
   fenParser(String fen){
@@ -204,6 +203,28 @@ class ChessBoardState{
       "fen":this.actualFen
     }.toString();
   }
+
+  @override
+  bool operator ==(Object other) {
+
+    return other is ChessBoardState
+      && setEquals(Set.unmodifiable(this.gamePieces), Set.unmodifiable(this.gamePieces))
+      && this.blackKingSide == other.blackKingSide
+      && this.blackQueenSide == other.blackQueenSide
+      && this.whiteKingSide == other.whiteKingSide
+      && this.whiteQueenSide == other.whiteQueenSide
+      && this.gameState == other.gameState
+      && this.lastEnPassantMove == other.lastEnPassantMove
+      && this.isWhiteTurn == other.isWhiteTurn
+      && this.halfMovesFromCoPM == other.halfMovesFromCoPM
+      && this.totalFullMoves == other.totalFullMoves
+    ;
+  }
+
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+
 }
 
 
