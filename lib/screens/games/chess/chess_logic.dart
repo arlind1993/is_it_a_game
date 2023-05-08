@@ -1,6 +1,9 @@
 
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:game_template/screens/games/chess/chess_piece_logic.dart';
+import 'package:logging/logging.dart';
 
 enum ChessGameState{
   WhiteWin,
@@ -10,6 +13,7 @@ enum ChessGameState{
 }
 
 class ChessBoardState{
+  Logger _logger = Logger("ChessBoardState");
   static const String defaultStartingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   static const int SQUARE = 8;
 
@@ -24,7 +28,6 @@ class ChessBoardState{
   late int totalFullMoves;
   ChessGameState gameState = ChessGameState.None;
 
-
   String get actualFen => toFen();
   List<ChessPiece> get aliveGamePieces => gamePieces.where((element) => !element.eaten).toList();
   List<ChessPiece> get deadGamePieces => gamePieces.where((element) => element.eaten).toList();
@@ -34,6 +37,27 @@ class ChessBoardState{
     String? initFen,
   }){
     fenParser(initFen ?? defaultStartingFen);
+  }
+
+  setMoves(List<Movement> moveOfTurn){
+    // _logger.info(moveOfTurn);
+    // _logger.info(gamePieces);
+    // ChessBoardState prev = ChessBoardState(initFen: toFen());
+    bool moveDone = false;
+    for (int i = 0; i < moveOfTurn.length; i++){
+      for(int j = 0; j < gamePieces.length; j++){
+        if(gamePieces[j] == moveOfTurn[i].from){
+          gamePieces[j] = moveOfTurn[i].to;
+          moveDone = true;
+          break;
+        }
+      }
+    }
+    // _logger.info(gamePieces);
+    // log("Prev: $prev, Now: $this -----> ${prev == this}");
+    if(moveDone){
+      isWhiteTurn = !isWhiteTurn;
+    }
   }
 
   fenParser(String fen){
@@ -206,9 +230,8 @@ class ChessBoardState{
 
   @override
   bool operator ==(Object other) {
-
     return other is ChessBoardState
-      && setEquals(Set.unmodifiable(this.gamePieces), Set.unmodifiable(this.gamePieces))
+      && setEquals(Set.unmodifiable(this.gamePieces), Set.unmodifiable(other.gamePieces))
       && this.blackKingSide == other.blackKingSide
       && this.blackQueenSide == other.blackQueenSide
       && this.whiteKingSide == other.whiteKingSide
@@ -217,8 +240,7 @@ class ChessBoardState{
       && this.lastEnPassantMove == other.lastEnPassantMove
       && this.isWhiteTurn == other.isWhiteTurn
       && this.halfMovesFromCoPM == other.halfMovesFromCoPM
-      && this.totalFullMoves == other.totalFullMoves
-    ;
+      && this.totalFullMoves == other.totalFullMoves;
   }
 
   @override

@@ -94,6 +94,12 @@ class ChessPiece{
     this.eaten = false,
   });
 
+  ChessPiece.clone(ChessPiece chessPiece):
+        this.location = chessPiece.location,
+        this.isWhite = chessPiece.isWhite,
+        this.eaten = chessPiece.eaten,
+        this.pieceType = chessPiece.pieceType;
+
   @override
   String toString() {
     // TODO: implement toString
@@ -112,6 +118,18 @@ class ChessPiece{
 
 class Movement{
 
+  ChessPiece from;
+  ChessPiece to;
+
+  Movement({
+    required this.from,
+    required this.to,
+  });
+
+  @override
+  String toString() {
+    return "From_:$from .... To_:$to";
+  }
 
   static Logger _logger = Logger("Movement");
 
@@ -122,21 +140,18 @@ class Movement{
   }
 
 
-
-
   static bool isInCheck(bool isWhite){
-
 
     return false;
   }
 
-  static List<MapEntry<ChessLocation, ChessPiece?>> getPossibleMovesForPiece(ChessPiece chessPiece, ChessBoardState gameState){
+  static List<PossibleMoveGroup> getPossibleMovesForPiece(ChessPiece chessPiece, ChessBoardState gameState){
 
     if(gameState.isWhiteTurn && chessPiece.isWhite){//movesForWhite
       _logger.fine("Moves only for white");
       switch(chessPiece.pieceType){
         case ChessPieceType.Pawn:
-          List<MapEntry<ChessLocation, ChessPiece?>> pawnLocations= [];
+          List<PossibleMoveGroup> pawnLocations= [];
           if(gameState.lastEnPassantMove!=null){//en passant move
             ChessLocation actualLocEnPassantPiece = ChessLocation(
               rank : gameState.lastEnPassantMove!.rank - 1,
@@ -148,11 +163,13 @@ class Movement{
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
-                MapEntry(
-                  ChessLocation(
+                PossibleMoveGroup(
+                  location: ChessLocation(
                     rank: chessPiece.location.rank + 1,
                     file: gameState.lastEnPassantMove!.file
-                  ), lastEnPassantMovedPiece
+                  ),
+                  eatenPiece: lastEnPassantMovedPiece,
+                  specialArgument: "en_passant"
                 )
               );//enPassantMove if possible added
             }
@@ -163,7 +180,7 @@ class Movement{
               return !element.eaten && !element.isWhite
                 && (chessPiece.location.file - element.location.file).abs() == 1
                 && chessPiece.location.rank + 1 == element.location.rank;
-            }).map((e) => MapEntry(e.location, e)).toList()
+            }).map((e) => PossibleMoveGroup(location: e.location, eatenPiece: e)).toList()
           ]);//the two adjacent pawns if there
 
           //add forwardMove if not blocked;
@@ -178,13 +195,13 @@ class Movement{
           });
 
           if(firstMovePossible){
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file), null));
+            pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file)));
             if(secondMovePossible){
-              pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank + 2, file: chessPiece.location.file), null));
+              pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank + 2, file: chessPiece.location.file)));
             }
           }
 
-          return pawnLocations.where((element) => element.key.inside).toList();
+          return pawnLocations.where((element) => element.location.inside).toList();
         case ChessPieceType.Knight:
           List<ChessLocation> knightJumps = [
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 2),
@@ -196,20 +213,20 @@ class Movement{
             ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file + 1),
             ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file - 1),
           ];
-          List<MapEntry<ChessLocation, ChessPiece?>> knightLocations = [];
+          List<PossibleMoveGroup> knightLocations = [];
           for(ChessLocation location in knightJumps){
             ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
             if(pieceInLocation == null){
-              knightLocations.add(MapEntry(location, null));
+              knightLocations.add(PossibleMoveGroup(location: location));
             }else{
               if(!pieceInLocation.isWhite){
-                knightLocations.add(MapEntry(location, pieceInLocation));
+                knightLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
               }
             }
           }
-          return knightLocations.where((element) => element.key.inside).toList();
+          return knightLocations.where((element) => element.location.inside).toList();
         case ChessPieceType.Bishop:
-          List<MapEntry<ChessLocation, ChessPiece?>> bishopMoves = [];
+          List<PossibleMoveGroup> bishopMoves = [];
           int rankDx = 1;
           List<bool> stoppedTlTrBlBR = [
             false,
@@ -229,10 +246,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[0]=true;
               }
@@ -247,10 +264,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[1]=true;
               }
@@ -265,10 +282,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[2]=true;
               }
@@ -283,10 +300,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[3]=true;
               }
@@ -295,7 +312,7 @@ class Movement{
           }
           return bishopMoves;
         case ChessPieceType.Rook:
-          List<MapEntry<ChessLocation, ChessPiece?>> rookMoves = [];
+          List<PossibleMoveGroup> rookMoves = [];
           int rankDx = 1;
           List<bool> stoppedTBLR = [
             false,
@@ -315,10 +332,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[0]=true;
               }
@@ -333,10 +350,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[1]=true;
               }
@@ -351,10 +368,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[2]=true;
               }
@@ -369,10 +386,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[3]=true;
               }
@@ -381,7 +398,7 @@ class Movement{
           }
           return rookMoves;
         case ChessPieceType.Queen:
-          List<MapEntry<ChessLocation, ChessPiece?>> queenMoves = [];
+          List<PossibleMoveGroup> queenMoves = [];
           int rankDx = 1;
           List<bool> stoppedTBLRQEZC = [
             false,
@@ -405,10 +422,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[0]=true;
               }
@@ -423,10 +440,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[1]=true;
               }
@@ -441,10 +458,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[2]=true;
               }
@@ -459,10 +476,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[3]=true;
               }
@@ -477,10 +494,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[4]=true;
               }
@@ -495,10 +512,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[5]=true;
               }
@@ -513,10 +530,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[6]=true;
               }
@@ -531,10 +548,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[7]=true;
               }
@@ -553,20 +570,20 @@ class Movement{
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 0),
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 1),
           ];
-          List<MapEntry<ChessLocation, ChessPiece?>> kingLocations = [];
+          List<PossibleMoveGroup> kingLocations = [];
           for(ChessLocation location in kingJumps){
             ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
             if(pieceInLocation == null){
-              kingLocations.add(MapEntry(location, null));
+              kingLocations.add(PossibleMoveGroup(location: location));
             }else{
               if(!pieceInLocation.isWhite){
-                kingLocations.add(MapEntry(location, pieceInLocation));
+                kingLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
               }
             }
           }
 
           if(gameState.whiteQueenSide){
-            List<MapEntry<ChessLocation, ChessPiece?>> queenSide = [];
+            List<PossibleMoveGroup> queenSide = [];
             bool blocked = false;
             bool touchdown = false;
             int dx = 2;
@@ -580,10 +597,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenSide.add(MapEntry(toThisLocation, null));
+                queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
               }else{
                 if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  queenSide.add(MapEntry(toThisLocation, null));
+                  queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
                   touchdown = true;
                 }
                 blocked = true;
@@ -595,7 +612,7 @@ class Movement{
             }
           }
           if(gameState.whiteKingSide){
-            List<MapEntry<ChessLocation, ChessPiece?>> kingSide = [];
+            List<PossibleMoveGroup> kingSide = [];
             bool blocked = false;
             bool touchdown = false;
             int dx = 2;
@@ -609,10 +626,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                kingSide.add(MapEntry(toThisLocation, null));
+                kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
               }else{
                 if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  kingSide.add(MapEntry(toThisLocation, null));
+                  kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
                   touchdown = true;
                 }
                 blocked = true;
@@ -625,13 +642,13 @@ class Movement{
           }
 
 
-          return kingLocations.where((element) => element.key.inside).toList();
+          return kingLocations.where((element) => element.location.inside).toList();
       }
     }else if(!gameState.isWhiteTurn && !chessPiece.isWhite){//Moves for black
       _logger.fine("Moves only for black");
       switch(chessPiece.pieceType){
         case ChessPieceType.Pawn:
-          List<MapEntry<ChessLocation, ChessPiece?>> pawnLocations= [];
+          List<PossibleMoveGroup> pawnLocations= [];
           if(gameState.lastEnPassantMove!=null){//en passant move
             ChessLocation actualLocEnPassantPiece = ChessLocation(
                 rank : gameState.lastEnPassantMove!.rank + 1,
@@ -643,11 +660,13 @@ class Movement{
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
-                  MapEntry(
-                      ChessLocation(
-                          rank: chessPiece.location.rank - 1,
-                          file: gameState.lastEnPassantMove!.file
-                      ), lastEnPassantMovedPiece
+                  PossibleMoveGroup(
+                    location: ChessLocation(
+                      rank: chessPiece.location.rank - 1,
+                      file: gameState.lastEnPassantMove!.file
+                    ),
+                    eatenPiece: lastEnPassantMovedPiece,
+                    specialArgument: "en_passant"
                   )
               );//enPassantMove if possible added
             }
@@ -658,7 +677,7 @@ class Movement{
               return !element.eaten && element.isWhite
                   && (chessPiece.location.file - element.location.file).abs() == 1
                   && chessPiece.location.rank - 1 == element.location.rank;
-            }).map((e) => MapEntry(e.location, e)).toList()
+            }).map((e) => PossibleMoveGroup(location: e.location, eatenPiece: e)).toList()
           ]);//the two adjacent pawns if there
 
           //add forwardMove if not blocked;
@@ -673,13 +692,13 @@ class Movement{
               });
 
           if(firstMovePossible){
-            pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file), null));
+            pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file)));
             if(secondMovePossible){
-              pawnLocations.add(MapEntry(ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file), null));
+              pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file)));
             }
           }
 
-          return pawnLocations.where((element) => element.key.inside).toList();
+          return pawnLocations.where((element) => element.location.inside).toList();
         case ChessPieceType.Knight:
           List<ChessLocation> knightJumps = [
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 2),
@@ -691,20 +710,20 @@ class Movement{
             ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file + 1),
             ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file - 1),
           ];
-          List<MapEntry<ChessLocation, ChessPiece?>> knightLocations = [];
+          List<PossibleMoveGroup> knightLocations = [];
           for(ChessLocation location in knightJumps){
             ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
             if(pieceInLocation == null){
-              knightLocations.add(MapEntry(location, null));
+              knightLocations.add(PossibleMoveGroup(location: location));
             }else{
               if(pieceInLocation.isWhite){
-                knightLocations.add(MapEntry(location, pieceInLocation));
+                knightLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
               }
             }
           }
-          return knightLocations.where((element) => element.key.inside).toList();
+          return knightLocations.where((element) => element.location.inside).toList();
         case ChessPieceType.Bishop:
-          List<MapEntry<ChessLocation, ChessPiece?>> bishopMoves = [];
+          List<PossibleMoveGroup> bishopMoves = [];
           int rankDx = 1;
           List<bool> stoppedTlTrBlBR = [
             false,
@@ -724,10 +743,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[0]=true;
               }
@@ -742,10 +761,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[1]=true;
               }
@@ -760,10 +779,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[2]=true;
               }
@@ -778,10 +797,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                bishopMoves.add(MapEntry(toThisLocation, null));
+                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[3]=true;
               }
@@ -790,7 +809,7 @@ class Movement{
           }
           return bishopMoves;
         case ChessPieceType.Rook:
-          List<MapEntry<ChessLocation, ChessPiece?>> rookMoves = [];
+          List<PossibleMoveGroup> rookMoves = [];
           int rankDx = 1;
           List<bool> stoppedTBLR = [
             false,
@@ -810,10 +829,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[0]=true;
               }
@@ -828,10 +847,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[1]=true;
               }
@@ -846,10 +865,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[2]=true;
               }
@@ -864,10 +883,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                rookMoves.add(MapEntry(toThisLocation, null));
+                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[3]=true;
               }
@@ -876,7 +895,7 @@ class Movement{
           }
           return rookMoves;
         case ChessPieceType.Queen:
-          List<MapEntry<ChessLocation, ChessPiece?>> queenMoves = [];
+          List<PossibleMoveGroup> queenMoves = [];
           int rankDx = 1;
           List<bool> stoppedTBLRQEZC = [
             false,
@@ -900,10 +919,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[0]=true;
               }
@@ -918,10 +937,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[1]=true;
               }
@@ -936,10 +955,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[2]=true;
               }
@@ -954,10 +973,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[3]=true;
               }
@@ -972,10 +991,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[4]=true;
               }
@@ -990,10 +1009,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[5]=true;
               }
@@ -1008,10 +1027,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[6]=true;
               }
@@ -1026,10 +1045,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenMoves.add(MapEntry(toThisLocation, null));
+                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(MapEntry(toThisLocation, pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[7]=true;
               }
@@ -1048,20 +1067,20 @@ class Movement{
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 0),
             ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file + 1),
           ];
-          List<MapEntry<ChessLocation, ChessPiece?>> kingLocations = [];
+          List<PossibleMoveGroup> kingLocations = [];
           for(ChessLocation location in kingJumps){
             ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
             if(pieceInLocation == null){
-              kingLocations.add(MapEntry(location, null));
+              kingLocations.add(PossibleMoveGroup(location: location));
             }else{
-              if(!pieceInLocation.isWhite){
-                kingLocations.add(MapEntry(location, pieceInLocation));
+              if(pieceInLocation.isWhite){
+                kingLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
               }
             }
           }
 
           if(gameState.blackQueenSide){
-            List<MapEntry<ChessLocation, ChessPiece?>> queenSide = [];
+            List<PossibleMoveGroup> queenSide = [];
             bool blocked = false;
             bool touchdown = false;
             int dx = 2;
@@ -1075,10 +1094,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                queenSide.add(MapEntry(toThisLocation, null));
+                queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
               }else{
                 if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  queenSide.add(MapEntry(toThisLocation, null));
+                  queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
                   touchdown = true;
                 }
                 blocked = true;
@@ -1090,7 +1109,7 @@ class Movement{
             }
           }
           if(gameState.blackKingSide){
-            List<MapEntry<ChessLocation, ChessPiece?>> kingSide = [];
+            List<PossibleMoveGroup> kingSide = [];
             bool blocked = false;
             bool touchdown = false;
             int dx = 2;
@@ -1104,10 +1123,10 @@ class Movement{
               }
               ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
               if(pieceStopping == null){
-                kingSide.add(MapEntry(toThisLocation, null));
+                kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
               }else{
                 if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  kingSide.add(MapEntry(toThisLocation, null));
+                  kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
                   touchdown = true;
                 }
                 blocked = true;
@@ -1119,12 +1138,28 @@ class Movement{
             }
           }
 
-          return kingLocations.where((element) => element.key.inside).toList();
+          return kingLocations.where((element) => element.location.inside).toList();
       }
     }
 
     return [];
   }
 
+}
 
+class PossibleMoveGroup{
+  ChessLocation location;
+  ChessPiece? eatenPiece;
+  String? specialArgument;
+
+  PossibleMoveGroup({
+    required this.location,
+    this.eatenPiece,
+    this.specialArgument,
+  });
+
+  @override
+  String toString() {
+    return "{loc: $location, eatPiece: $eatenPiece, args: $specialArgument}";
+  }
 }
