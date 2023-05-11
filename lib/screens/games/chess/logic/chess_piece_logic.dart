@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:game_template/screens/games/chess/chess_logic.dart';
+import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
 import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
 Logger _logger = Logger("Chess piece logic");

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
 import '../chess_global.dart';
-import '../chess_logic.dart';
-import '../chess_piece_logic.dart';
+import '../logic/chess_logic.dart';
+import '../logic/chess_piece_logic.dart';
 
 class ChessBoardBuilder extends StatefulWidget {
   ChessBoardState chessBoardState;

@@ -13,6 +13,7 @@ import 'package:game_template/screens/games/chess/chess_init_screen.dart';
 import 'package:game_template/screens/games/murlan/murlan.dart';
 import 'package:game_template/screens/games/poker/poker.dart';
 import 'package:game_template/screens/games/sudoku/sudoku.dart';
+import 'package:game_template/screens/games/wire/main_wire_screen.dart';
 import 'package:game_template/screens/main_menu_screen.dart';
 import 'package:game_template/screens/settings_screen.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
@@ -79,72 +80,84 @@ class MyApp extends StatelessWidget {
           },
           routes: [
             GoRoute(
-                path: 'game_selector',
-                pageBuilder: (context, state) {
-                  return getIt<CustomTransitionBuilder>().build(
-                    child: GameSelector(key: Key('game selection')),
-                    color: getIt<AppColor>().greenContrast
-                  );
-                },
-                routes: [
-                  GoRoute(
-                    path: 'chess',
-                    pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
-                        child: MainChessScreen(
-                          key: const Key('chess'),
-                        ),
-                        color: getIt<AppColor>().greenContrast,
-                      );
-                    },
-                    routes: [
-                      GoRoute(
-                        path: 'play',
-                        pageBuilder: (context, state) {
-                          return getIt<CustomTransitionBuilder>().build<void>(
-                            child: ChessInitScreen(
-                              key: const Key('chess play'),
-                            ),
-                            color: getIt<AppColor>().greenContrast,
-                          );
-                        },
-                      )
-                    ]
-                  ),
-                  GoRoute(
-                    path: 'murlan',
-                    pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
-                        child: MainMurlanScreen(
-                          key: const Key('murlan'),
-                        ),
-                        color: getIt<AppColor>().greenContrast,
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'poker',
-                    pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
-                        child: MainPokerScreen(
-                          key: const Key('poker'),
-                        ),
-                        color: getIt<AppColor>().greenContrast,
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'sudoku',
-                    pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
-                        child: MainSudokuScreen(
-                          key: const Key('sudoku'),
-                        ),
-                        color: getIt<AppColor>().greenContrast,
-                      );
-                    },
-                  ),
-                ]),
+              path: 'game_selector',
+              pageBuilder: (context, state) {
+                return getIt<CustomTransitionBuilder>().build(
+                  child: GameSelector(key: Key('game selection')),
+                  color: getIt<AppColor>().greenContrast
+                );
+              },
+              routes: [
+                GoRoute(
+                  path: 'chess',
+                  pageBuilder: (context, state) {
+                    return getIt<CustomTransitionBuilder>().build<void>(
+                      child: MainChessScreen(
+                        key: const Key('chess'),
+                      ),
+                      color: getIt<AppColor>().greenContrast,
+                    );
+                  },
+                  routes: [
+                    GoRoute(
+                      path: 'play',
+                      pageBuilder: (context, state) {
+                        return getIt<CustomTransitionBuilder>().build<void>(
+                          child: ChessInitScreen(
+                            key: const Key('chess play'),
+                          ),
+                          color: getIt<AppColor>().greenContrast,
+                        );
+                      },
+                    )
+                  ]
+                ),
+                GoRoute(
+                  path: 'murlan',
+                  pageBuilder: (context, state) {
+                    return getIt<CustomTransitionBuilder>().build<void>(
+                      child: MainMurlanScreen(
+                        key: const Key('murlan'),
+                      ),
+                      color: getIt<AppColor>().greenContrast,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'poker',
+                  pageBuilder: (context, state) {
+                    return getIt<CustomTransitionBuilder>().build<void>(
+                      child: MainPokerScreen(
+                        key: const Key('poker'),
+                      ),
+                      color: getIt<AppColor>().greenContrast,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'sudoku',
+                  pageBuilder: (context, state) {
+                    return getIt<CustomTransitionBuilder>().build<void>(
+                      child: MainSudokuScreen(
+                        key: const Key('sudoku'),
+                      ),
+                      color: getIt<AppColor>().greenContrast,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'wire',
+                  pageBuilder: (context, state) {
+                    return getIt<CustomTransitionBuilder>().build<void>(
+                      child: MainWireScreen(
+                        key: const Key('wire'),
+                      ),
+                      color: getIt<AppColor>().greenContrast,
+                    );
+                  },
+                )
+              ]
+            ),
             GoRoute(
               path: 'settings',
               builder: (context, state) {

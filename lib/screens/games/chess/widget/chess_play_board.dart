@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/games/chess/chess_logic.dart';
+import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
 import 'package:game_template/screens/games/chess/widget/chess_board_builder.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';

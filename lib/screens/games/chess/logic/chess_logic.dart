@@ -1,9 +1,8 @@
 
-import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
-import 'package:game_template/screens/games/chess/chess_piece_logic.dart';
 import 'package:logging/logging.dart';
+import 'chess_piece_logic.dart';
 
 enum ChessGameState{
   WhiteWin,
