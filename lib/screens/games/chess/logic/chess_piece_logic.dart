@@ -3,12 +3,14 @@ import 'dart:collection';
 import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
 import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
+
+import '../chess_constants.dart';
 Logger _logger = Logger("Chess piece logic");
 
 class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable{
   late int rank;
   late int file;
-  bool get inside => (rank >= 1 && rank <= ChessBoardState.SQUARE) && (file >= 1 && file <= ChessBoardState.SQUARE);
+  bool get inside => (rank >= 1 && rank <= ChessConstants().CHESS_SIZE_SQUARE) && (file >= 1 && file <= ChessConstants().CHESS_SIZE_SQUARE);
   String get nameConvention => inside ? String.fromCharCode(96 + file) + rank.toString() : "outside";
 
   ChessLocation({
@@ -38,8 +40,8 @@ class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable
     //   throw "outside compare to";
     // }
     if(other is ChessLocation) {
-      return ((ChessBoardState.SQUARE - rank) * ChessBoardState.SQUARE + (file))-
-          ((ChessBoardState.SQUARE - other.rank) * ChessBoardState.SQUARE + (other.file));
+      return ((ChessConstants().CHESS_SIZE_SQUARE - rank) * ChessConstants().CHESS_SIZE_SQUARE + (file))-
+          ((ChessConstants().CHESS_SIZE_SQUARE - other.rank) * ChessConstants().CHESS_SIZE_SQUARE + (other.file));
     }
     throw "Non Location type error";
   }
@@ -685,7 +687,7 @@ class Movement{
             return !element.eaten && chessPiece.location.file == element.location.file
                 && chessPiece.location.rank - 1 == element.location.rank;
           });
-          bool secondMovePossible = chessPiece.location.rank == ChessBoardState.SQUARE - 1 &&
+          bool secondMovePossible = chessPiece.location.rank == ChessConstants().CHESS_SIZE_SQUARE - 1 &&
               !gameState.gamePieces.any((element) {
                 return !element.eaten && chessPiece.location.file == element.location.file
                     && chessPiece.location.rank - 2 == element.location.rank;

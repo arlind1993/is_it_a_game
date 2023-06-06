@@ -4,21 +4,29 @@ import 'package:game_template/screens/games/chess/widget/chess_board_builder.dar
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
 
+import '../chess_constants.dart';
+
 
 class ChessPlayBoard extends StatefulWidget {
-  late ChessBoardState importBoard;
   ChessPlayBoard({
     super.key,
-    ChessBoardState? import,
-  }){
-    importBoard = import ?? ChessBoardState();
-  }
+  });
 
   @override
   State<ChessPlayBoard> createState() => _ChessPlayBoardState();
 }
 
 class _ChessPlayBoardState extends State<ChessPlayBoard> {
+  late bool youAreWhite;
+  late String fenString;
+  
+  @override
+  void initState() {
+    super.initState();
+    youAreWhite = true;
+    fenString = "";
+  }
+  
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -31,13 +39,13 @@ class _ChessPlayBoardState extends State<ChessPlayBoard> {
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(ChessBoardState.SQUARE, (rankIndex){
+                children: List.generate(ChessConstants().CHESS_SIZE_SQUARE, (rankIndex){
                   return Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: List.generate(ChessBoardState.SQUARE, (fileIndex){
+                    children: List.generate(ChessConstants().CHESS_SIZE_SQUARE, (fileIndex){
                       return Container(
-                        width: screenSize/ChessBoardState.SQUARE,
-                        height: screenSize/ChessBoardState.SQUARE,
+                        width: screenSize/ChessConstants().CHESS_SIZE_SQUARE,
+                        height: screenSize/ChessConstants().CHESS_SIZE_SQUARE,
                         color: (rankIndex + fileIndex) % 2 == 0
                           ? getIt<AppColor>().beigeMain
                           : getIt<AppColor>().brownMain,
@@ -47,7 +55,7 @@ class _ChessPlayBoardState extends State<ChessPlayBoard> {
                 }),
               ),
               Positioned.fill(
-                child: ChessBoardBuilder(chessBoardState: widget.importBoard)
+                child: ChessBoardBuilder(youAreWhite: youAreWhite, importFen: fenString),
               ),
             ],
           )

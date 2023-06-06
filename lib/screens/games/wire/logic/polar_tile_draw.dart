@@ -125,5 +125,23 @@ class PolarTileSize{
     "RC: $_radiusCircumscribed\n"
     ;
   }
+  
+  PolarTile fromXYToPolar(Offset xyCords){
+    double x = xyCords.dx;
+    double y = xyCords.dx;
+    PolarTile polarTile = PolarTile(polygonTileForm: polygonTileForm);
+    switch(polygonTileForm){
+      case TessellateType.triangle:
+        break;
+      case TessellateType.square:
+        break;
+      case TessellateType.hexagon:
+        break;
+      default: 
+        throw "non compatible";
+    }
+    return polarTile;
+  }
+  
 }
 
