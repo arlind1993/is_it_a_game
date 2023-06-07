@@ -1,9 +1,10 @@
-import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
-import 'package:game_template/screens/games/chess/logic/chess_piece_logic.dart';
+import 'package:game_template/screens/games/chess/models/chess_board_state.dart';
+import 'package:game_template/screens/games/chess/models/chess_piece.dart';
 import 'package:logging/logging.dart';
 
-import '../chess_constants.dart';
-
+import '../models/chess_constants.dart';
+import '../models/chess_location.dart';
+///LOWKEY DONE
 class ChessFenAlgorithms{
   static const String defaultStartingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   static ChessFenAlgorithms _fenAlgorithms = ChessFenAlgorithms._();
@@ -36,7 +37,7 @@ class ChessFenAlgorithms{
         blackQueenSide: castlingRights.contains("q"),
         halfMovesFromCoPM : int.parse(halfMove),
         totalFullMoves : int.parse(fullMove),
-        lastEnPassantMove : enPassantPlayed == "-" ? null : ChessLocation.fromChessNotation(enPassantPlayed),
+        lastEnPassantMove : enPassantPlayed == "-" ? null : ChessLocation.fromPieceFen(enPassantPlayed),
         gamePieces: fenPieceParser(piecePlacement)
       );
     }else{
@@ -126,7 +127,7 @@ class ChessFenAlgorithms{
     StringBuffer bufferResult = StringBuffer();
 
     for(int i = 0; i < ChessConstants().CHESS_SIZE_SQUARE ; i++){
-      List<ChessPiece> listPieces = chessBoardState.gamePieces.where((element) {
+      List<ChessPiece> listPieces = chessBoardState.gamePiecesMapped.values.where((element) {
         return !element.eaten && element.location.rank == ChessConstants().CHESS_SIZE_SQUARE-i;
       }).toList();
 

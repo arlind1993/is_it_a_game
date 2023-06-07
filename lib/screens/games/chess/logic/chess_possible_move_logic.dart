@@ -1,153 +1,28 @@
-import 'dart:collection';
-
-import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
-import 'package:game_template/services/extensions/iterable_extensions.dart';
+import 'package:game_template/screens/games/chess/models/chess_movement.dart';
 import 'package:logging/logging.dart';
 
-import '../chess_constants.dart';
-Logger _logger = Logger("Chess piece logic");
-
-class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable{
-  late int rank;
-  late int file;
-  bool get inside => (rank >= 1 && rank <= ChessConstants().CHESS_SIZE_SQUARE) && (file >= 1 && file <= ChessConstants().CHESS_SIZE_SQUARE);
-  String get nameConvention => inside ? String.fromCharCode(96 + file) + rank.toString() : "outside";
-
-  ChessLocation({
-    required this.rank,
-    required this.file,
-  });
-
-  ChessLocation.fromChessNotation(String notation){
-    String fileIntString = "";
-    String rankIntString = "";
-    for(int i = 0;  i < notation.length; i++){
-      int character = notation.codeUnitAt(i);
-      if(character >= 48 && character < 58){
-        rankIntString += "${character - 48}";
-      }else if(character >= 97 && character < 123){
-        fileIntString += "${character - 96}";
-      }
-      _logger.warning("$character => $fileIntString,$rankIntString");
-    }
-    file = int.parse(fileIntString);
-    rank = int.parse(rankIntString);
+import '../models/chess_constants.dart';
+import '../models/chess_location.dart';
+import '../models/chess_board_state.dart';
+import '../models/chess_piece.dart';
+import '../models/chess_possible_move_group.dart';
+///HIGHKEY A LOT TO DO
+class ChessPossibleMovesAlgorithms{
+  static ChessPossibleMovesAlgorithms _possibleMovesAlgorithms = ChessPossibleMovesAlgorithms._();
+  factory ChessPossibleMovesAlgorithms(){
+    return _possibleMovesAlgorithms;
   }
+  ChessPossibleMovesAlgorithms._();
 
-  @override
-  int compareTo(other) {
-    // if(!inside){
-    //   throw "outside compare to";
-    // }
-    if(other is ChessLocation) {
-      return ((ChessConstants().CHESS_SIZE_SQUARE - rank) * ChessConstants().CHESS_SIZE_SQUARE + (file))-
-          ((ChessConstants().CHESS_SIZE_SQUARE - other.rank) * ChessConstants().CHESS_SIZE_SQUARE + (other.file));
-    }
-    throw "Non Location type error";
-  }
-
-  bool operator ==(Object other) => this.compareTo(other) == 0;
-  bool operator >(Object other) => this.compareTo(other) > 0;
-  bool operator >=(Object other) => this.compareTo(other) >= 0;
-  bool operator <(Object other) => this.compareTo(other) < 0;
-  bool operator <=(Object other) => this.compareTo(other) <= 0;
-
-  @override
-  int get hashCode => super.hashCode;
-
-  @override
-  String toString() {
-    return nameConvention;
-  }
-}
-
-enum ChessPieceType{
-  Pawn,
-  Bishop,
-  Knight,
-  Rook,
-  Queen,
-  King,
-}
-
-class ChessPiece{
-  bool isWhite;
-  bool eaten;
-  ChessLocation location;
-  ChessPieceType pieceType;
-
-  String get pieceCode {
-    switch(pieceType){
-      case ChessPieceType.Pawn: return "p";
-      case ChessPieceType.Bishop: return "b";
-      case ChessPieceType.Knight: return "n";
-      case ChessPieceType.Rook: return "r";
-      case ChessPieceType.Queen: return "q";
-      case ChessPieceType.King: return "k";
-    }
-  }
-
-  String get pieceCodeColor => isWhite ? pieceCode.toUpperCase() : pieceCode;
-
-  ChessPiece({
-    required this.location,
-    required this.isWhite,
-    required this.pieceType,
-    this.eaten = false,
-  });
-
-  ChessPiece.clone(ChessPiece chessPiece):
-        this.location = chessPiece.location,
-        this.isWhite = chessPiece.isWhite,
-        this.eaten = chessPiece.eaten,
-        this.pieceType = chessPiece.pieceType;
-
-  @override
-  String toString() {
-    // TODO: implement toString
-    return "CP{type: $pieceCodeColor, location: $location}";
-  }
-
-  bool operator == (o) => o is ChessPiece
-      && isWhite == o.isWhite
-      && location == o.location
-      && pieceType == o.pieceType
-      && eaten == o.eaten;
-
-  @override
-  int get hashCode => super.hashCode;
-}
-
-class Movement{
-
-  ChessPiece from;
-  ChessPiece to;
-
-  Movement({
-    required this.from,
-    required this.to,
-  });
-
-  @override
-  String toString() {
-    return "From_:$from .... To_:$to";
-  }
-
-  static Logger _logger = Logger("Movement");
-
-  static ChessPiece? getFirstAlivePieceIfInLocation(List<ChessPiece> chessPieces, ChessLocation? location){
-    return chessPieces.firstWhereIfThere((element) {
-      return !element.eaten && location == element.location;
-    });
-  }
+  Logger _logger = Logger("Possible Moves");
 
 
-  static bool isInCheck(bool isWhite){
+  bool isInCheck(bool isWhite){
 
     return false;
   }
 
-  static List<PossibleMoveGroup> getPossibleMovesForPiece(ChessPiece chessPiece, ChessBoardState gameState){
+  List<PossibleMoveGroup> getPossibleMovesForPiece(ChessPiece chessPiece, ChessBoardState gameState){
 
     if(gameState.isWhiteTurn && chessPiece.isWhite){//movesForWhite
       _logger.fine("Moves only for white");
@@ -156,54 +31,79 @@ class Movement{
           List<PossibleMoveGroup> pawnLocations= [];
           if(gameState.lastEnPassantMove!=null){//en passant move
             ChessLocation actualLocEnPassantPiece = ChessLocation(
-              rank : gameState.lastEnPassantMove!.rank - 1,
-              file : gameState.lastEnPassantMove!.file
+                rank : gameState.lastEnPassantMove!.rank - 1,
+                file : gameState.lastEnPassantMove!.file
             );
-            ChessPiece? lastEnPassantMovedPiece = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, actualLocEnPassantPiece );
+            ChessPiece? lastEnPassantMovedPiece = gameState.aliveGamePiecesMapped[actualLocEnPassantPiece];
             _logger.warning("En passant: $lastEnPassantMovedPiece");
             if(lastEnPassantMovedPiece !=null && !lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
-                PossibleMoveGroup(
-                  location: ChessLocation(
-                    rank: chessPiece.location.rank + 1,
-                    file: gameState.lastEnPassantMove!.file
-                  ),
-                  eatenPiece: lastEnPassantMovedPiece,
-                  specialArgument: "en_passant"
-                )
+                  PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                      from: chessPiece, 
+                      to: ChessPiece.clone(chessPiece)..location = ChessLocation(
+                        rank: chessPiece.location.rank + 1,
+                        file: gameState.lastEnPassantMove!.file
+                      )
+                    ),
+                    eatenPiece: lastEnPassantMovedPiece,
+                    enPassant: true
+                  )
               );//enPassantMove if possible added
             }
           }
 
           pawnLocations.addAll([
-          ...gameState.gamePieces.where((element){
+            ...gameState.gamePiecesMapped.values.where((element){
               return !element.eaten && !element.isWhite
-                && (chessPiece.location.file - element.location.file).abs() == 1
-                && chessPiece.location.rank + 1 == element.location.rank;
-            }).map((e) => PossibleMoveGroup(location: e.location, eatenPiece: e)).toList()
+                  && (chessPiece.location.file - element.location.file).abs() == 1
+                  && chessPiece.location.rank + 1 == element.location.rank;
+            }).map((e) => PossibleMoveGroup(
+              pieceMovement: ChessMovement(
+                from: chessPiece,
+                to: ChessPiece.clone(chessPiece)..location = e.location
+              ),
+              eatenPiece: e
+            )).toList()
           ]);//the two adjacent pawns if there
 
           //add forwardMove if not blocked;
-          bool firstMovePossible = !gameState.gamePieces.any((element) {
+          bool firstMovePossible = !gameState.gamePiecesMapped.values.any((element) {
             return !element.eaten && chessPiece.location.file == element.location.file
                 && chessPiece.location.rank + 1 == element.location.rank;
           });
           bool secondMovePossible = chessPiece.location.rank == 2 &&
-          !gameState.gamePieces.any((element) {
-            return !element.eaten && chessPiece.location.file == element.location.file
-                && chessPiece.location.rank + 2 == element.location.rank;
-          });
+              !gameState.gamePiecesMapped.values.any((element) {
+                return !element.eaten && chessPiece.location.file == element.location.file
+                    && chessPiece.location.rank + 2 == element.location.rank;
+              });
 
           if(firstMovePossible){
-            pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file)));
+            pawnLocations.add(PossibleMoveGroup(
+              pieceMovement: ChessMovement(
+                from: chessPiece,
+                to: ChessPiece.clone(chessPiece)..location = ChessLocation(
+                  rank: chessPiece.location.rank + 1, 
+                  file: chessPiece.location.file
+                )
+              )
+            ));
             if(secondMovePossible){
-              pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank + 2, file: chessPiece.location.file)));
+              pawnLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                  from: chessPiece,
+                  to: ChessPiece.clone(chessPiece)..location = ChessLocation(
+                    rank: chessPiece.location.rank + 2, 
+                    file: chessPiece.location.file
+                  )
+                )
+              ));
             }
           }
 
-          return pawnLocations.where((element) => element.location.inside).toList();
+          return pawnLocations.where((element) => element.pieceMovement.to.location.inside).toList();
         case ChessPieceType.Knight:
           List<ChessLocation> knightJumps = [
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 2),
@@ -217,16 +117,26 @@ class Movement{
           ];
           List<PossibleMoveGroup> knightLocations = [];
           for(ChessLocation location in knightJumps){
-            ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
+            ChessPiece? pieceInLocation = gameState.aliveGamePiecesMapped[location];
             if(pieceInLocation == null){
-              knightLocations.add(PossibleMoveGroup(location: location));
+              knightLocations.add(PossibleMoveGroup(
+                pieceMovement: ChessMovement(
+                  from: chessPiece,
+                  to: ChessPiece.clone(chessPiece)..location = location
+                )
+              ));
             }else{
               if(!pieceInLocation.isWhite){
-                knightLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
+                knightLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location =location
+                  ),eatenPiece: pieceInLocation
+                ));
               }
             }
           }
-          return knightLocations.where((element) => element.location.inside).toList();
+          return knightLocations.where((element) => element.pieceMovement.to.location.inside).toList();
         case ChessPieceType.Bishop:
           List<PossibleMoveGroup> bishopMoves = [];
           int rankDx = 1;
@@ -240,18 +150,28 @@ class Movement{
             _logger.info("$rankDx loop -> { $stoppedTlTrBlBR}");
             if(!stoppedTlTrBlBR[0]){//Top Left
               ChessLocation toThisLocation = ChessLocation(
-                rank: chessPiece.location.rank + rankDx,
-                file: chessPiece.location.file - rankDx
+                  rank: chessPiece.location.rank + rankDx,
+                  file: chessPiece.location.file - rankDx
               );
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[0]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ),
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                        from: chessPiece,
+                        to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ),eatenPiece: pieceStopping)
+                  );
                 }
                 stoppedTlTrBlBR[0]=true;
               }
@@ -264,12 +184,22 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[1]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                      from: chessPiece,
+                      to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTlTrBlBR[1]=true;
               }
@@ -282,12 +212,22 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[2]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ) 
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                        from: chessPiece,
+                        to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTlTrBlBR[2]=true;
               }
@@ -300,12 +240,22 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[3]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                        from: chessPiece,
+                        to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTlTrBlBR[3]=true;
               }
@@ -332,12 +282,22 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[0]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                      from: chessPiece,
+                      to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTBLR[0]=true;
               }
@@ -350,12 +310,22 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[1]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                        from: chessPiece,
+                        to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTBLR[1]=true;
               }
@@ -368,30 +338,50 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[2]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                      from: chessPiece,
+                      to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTBLR[2]=true;
               }
             }
             if(!stoppedTBLR[3]){//Right
               ChessLocation toThisLocation = ChessLocation(
-                  rank: chessPiece.location.rank,
-                  file: chessPiece.location.file + rankDx
+                rank: chessPiece.location.rank,
+                file: chessPiece.location.file + rankDx
               );
               if(!toThisLocation.inside){
                 stoppedTBLR[3]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )
+                ));
               }else{
                 if(!pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                    pieceMovement: ChessMovement(
+                      from: chessPiece,
+                      to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                    ), eatenPiece: pieceStopping
+                  ));
                 }
                 stoppedTBLR[3]=true;
               }
@@ -422,12 +412,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[0]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[0]=true;
               }
@@ -440,12 +438,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[1]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[1]=true;
               }
@@ -458,12 +464,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[2]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[2]=true;
               }
@@ -476,12 +490,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[3]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[3]=true;
               }
@@ -494,12 +516,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[4]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[4]=true;
               }
@@ -512,12 +542,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[5]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[5]=true;
               }
@@ -530,12 +568,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[6]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[6]=true;
               }
@@ -548,12 +594,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[7]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(!pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[7]=true;
               }
@@ -574,12 +628,20 @@ class Movement{
           ];
           List<PossibleMoveGroup> kingLocations = [];
           for(ChessLocation location in kingJumps){
-            ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
+            ChessPiece? pieceInLocation = gameState.aliveGamePiecesMapped[location];
             if(pieceInLocation == null){
-              kingLocations.add(PossibleMoveGroup(location: location));
+              kingLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = location
+                  )));
             }else{
               if(!pieceInLocation.isWhite){
-                kingLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
+                kingLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = location
+                  ), eatenPiece: pieceInLocation));
               }
             }
           }
@@ -597,12 +659,20 @@ class Movement{
               if(!toThisLocation.inside){
                 blocked = true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
+                queenSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location
+                  ), queenSide: true));
               }else{
                 if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
+                  queenSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location
+                  ), queenSide: true));
                   touchdown = true;
                 }
                 blocked = true;
@@ -626,12 +696,20 @@ class Movement{
               if(!toThisLocation.inside){
                 blocked = true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
+                kingSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)
+                  ), kingSide: true));
               }else{
                 if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
+                  kingSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)
+                  ), kingSide: true));
                   touchdown = true;
                 }
                 blocked = true;
@@ -644,7 +722,7 @@ class Movement{
           }
 
 
-          return kingLocations.where((element) => element.location.inside).toList();
+          return kingLocations.where((element) => element.pieceMovement.to.location.inside).toList();
       }
     }else if(!gameState.isWhiteTurn && !chessPiece.isWhite){//Moves for black
       _logger.fine("Moves only for black");
@@ -656,51 +734,68 @@ class Movement{
                 rank : gameState.lastEnPassantMove!.rank + 1,
                 file : gameState.lastEnPassantMove!.file
             );
-            ChessPiece? lastEnPassantMovedPiece = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, actualLocEnPassantPiece);
+            ChessPiece? lastEnPassantMovedPiece = gameState.aliveGamePiecesMapped[actualLocEnPassantPiece];
             _logger.warning("En passant: $lastEnPassantMovedPiece");
             if(lastEnPassantMovedPiece !=null && lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
                   PossibleMoveGroup(
-                    location: ChessLocation(
-                      rank: chessPiece.location.rank - 1,
-                      file: gameState.lastEnPassantMove!.file
+                    pieceMovement: ChessMovement(
+                      from: chessPiece,
+                      to: ChessPiece.clone(chessPiece)..location = ChessLocation(
+                          rank: chessPiece.location.rank - 1,
+                          file: gameState.lastEnPassantMove!.file
+                      )
                     ),
-                    eatenPiece: lastEnPassantMovedPiece,
-                    specialArgument: "en_passant"
+                      eatenPiece: lastEnPassantMovedPiece,
+                      enPassant: true
                   )
               );//enPassantMove if possible added
             }
           }
 
           pawnLocations.addAll([
-            ...gameState.gamePieces.where((element){
+            ...gameState.gamePiecesMapped.values.where((element){
               return !element.eaten && element.isWhite
                   && (chessPiece.location.file - element.location.file).abs() == 1
                   && chessPiece.location.rank - 1 == element.location.rank;
-            }).map((e) => PossibleMoveGroup(location: e.location, eatenPiece: e)).toList()
+            }).map((e) => PossibleMoveGroup(
+              pieceMovement: ChessMovement(
+                from: chessPiece,
+                to: ChessPiece.clone(chessPiece)..location = e.location
+              ), eatenPiece: e
+            )).toList()
           ]);//the two adjacent pawns if there
 
           //add forwardMove if not blocked;
-          bool firstMovePossible = !gameState.gamePieces.any((element) {
+          bool firstMovePossible = !gameState.gamePiecesMapped.values.any((element) {
             return !element.eaten && chessPiece.location.file == element.location.file
                 && chessPiece.location.rank - 1 == element.location.rank;
           });
           bool secondMovePossible = chessPiece.location.rank == ChessConstants().CHESS_SIZE_SQUARE - 1 &&
-              !gameState.gamePieces.any((element) {
+              !gameState.gamePiecesMapped.values.any((element) {
                 return !element.eaten && chessPiece.location.file == element.location.file
                     && chessPiece.location.rank - 2 == element.location.rank;
               });
 
           if(firstMovePossible){
-            pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file)));
+            pawnLocations.add(PossibleMoveGroup(
+                pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = ChessLocation(rank: chessPiece.location.rank - 1, file: chessPiece.location.file)
+                )));
             if(secondMovePossible){
-              pawnLocations.add(PossibleMoveGroup(location: ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file)));
+              pawnLocations.add(PossibleMoveGroup(
+                pieceMovement: ChessMovement(
+                  from: chessPiece,
+                  to: ChessPiece.clone(chessPiece)..location = ChessLocation(rank: chessPiece.location.rank - 2, file: chessPiece.location.file)
+                )
+              ));
             }
           }
 
-          return pawnLocations.where((element) => element.location.inside).toList();
+          return pawnLocations.where((element) => element.pieceMovement.to.location.inside).toList();
         case ChessPieceType.Knight:
           List<ChessLocation> knightJumps = [
             ChessLocation(rank: chessPiece.location.rank + 1, file: chessPiece.location.file + 2),
@@ -714,16 +809,24 @@ class Movement{
           ];
           List<PossibleMoveGroup> knightLocations = [];
           for(ChessLocation location in knightJumps){
-            ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
+            ChessPiece? pieceInLocation = gameState.aliveGamePiecesMapped[location];
             if(pieceInLocation == null){
-              knightLocations.add(PossibleMoveGroup(location: location));
+              knightLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = location
+                  )));
             }else{
               if(pieceInLocation.isWhite){
-                knightLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
+                knightLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = location
+                  ), eatenPiece: pieceInLocation));
               }
             }
           }
-          return knightLocations.where((element) => element.location.inside).toList();
+          return knightLocations.where((element) => element.pieceMovement.to.location.inside).toList();
         case ChessPieceType.Bishop:
           List<PossibleMoveGroup> bishopMoves = [];
           int rankDx = 1;
@@ -743,12 +846,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[0]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[0]=true;
               }
@@ -761,12 +872,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[1]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[1]=true;
               }
@@ -779,12 +898,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[2]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[2]=true;
               }
@@ -797,12 +924,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTlTrBlBR[3]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                bishopMoves.add(PossibleMoveGroup(location: toThisLocation));
+                bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  bishopMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  bishopMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTlTrBlBR[3]=true;
               }
@@ -829,12 +964,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[0]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[0]=true;
               }
@@ -847,12 +990,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[1]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[1]=true;
               }
@@ -865,12 +1016,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[2]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[2]=true;
               }
@@ -883,12 +1042,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLR[3]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                rookMoves.add(PossibleMoveGroup(location: toThisLocation));
+                rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  rookMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  rookMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLR[3]=true;
               }
@@ -919,12 +1086,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[0]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[0]=true;
               }
@@ -937,12 +1112,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[1]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[1]=true;
               }
@@ -955,12 +1138,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[2]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[2]=true;
               }
@@ -973,12 +1164,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[3]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[3]=true;
               }
@@ -991,12 +1190,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[4]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[4]=true;
               }
@@ -1009,12 +1216,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[5]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[5]=true;
               }
@@ -1027,12 +1242,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[6]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[6]=true;
               }
@@ -1045,12 +1268,20 @@ class Movement{
               if(!toThisLocation.inside){
                 stoppedTBLRQEZC[7]=true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenMoves.add(PossibleMoveGroup(location: toThisLocation));
+                queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  )));
               }else{
                 if(pieceStopping.isWhite){
-                  queenMoves.add(PossibleMoveGroup(location: toThisLocation, eatenPiece: pieceStopping));
+                  queenMoves.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), eatenPiece: pieceStopping));
                 }
                 stoppedTBLRQEZC[7]=true;
               }
@@ -1071,12 +1302,20 @@ class Movement{
           ];
           List<PossibleMoveGroup> kingLocations = [];
           for(ChessLocation location in kingJumps){
-            ChessPiece? pieceInLocation = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, location);
+            ChessPiece? pieceInLocation = gameState.aliveGamePiecesMapped[location];
             if(pieceInLocation == null){
-              kingLocations.add(PossibleMoveGroup(location: location));
+              kingLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = location
+                  )));
             }else{
               if(pieceInLocation.isWhite){
-                kingLocations.add(PossibleMoveGroup(location: location, eatenPiece: pieceInLocation));
+                kingLocations.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = location
+                  ), eatenPiece: pieceInLocation));
               }
             }
           }
@@ -1094,12 +1333,20 @@ class Movement{
               if(!toThisLocation.inside){
                 blocked = true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
+                queenSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), queenSide: true));
               }else{
                 if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  queenSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "queen_side"));
+                  queenSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
+                  ), queenSide: true));
                   touchdown = true;
                 }
                 blocked = true;
@@ -1123,12 +1370,20 @@ class Movement{
               if(!toThisLocation.inside){
                 blocked = true;
               }
-              ChessPiece? pieceStopping = Movement.getFirstAlivePieceIfInLocation(gameState.gamePieces, toThisLocation);
+              ChessPiece? pieceStopping = gameState.aliveGamePiecesMapped[toThisLocation];
               if(pieceStopping == null){
-                kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
+                kingSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)
+                  ), kingSide: true));
               }else{
                 if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
-                  kingSide.add(PossibleMoveGroup(location: toThisLocation, specialArgument: "king_side"));
+                  kingSide.add(PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)
+                  ), kingSide: true));
                   touchdown = true;
                 }
                 blocked = true;
@@ -1140,28 +1395,11 @@ class Movement{
             }
           }
 
-          return kingLocations.where((element) => element.location.inside).toList();
+          return kingLocations.where((element) => element.pieceMovement.to.location.inside).toList();
       }
     }
-
     return [];
   }
-
 }
 
-class PossibleMoveGroup{
-  ChessLocation location;
-  ChessPiece? eatenPiece;
-  String? specialArgument;
 
-  PossibleMoveGroup({
-    required this.location,
-    this.eatenPiece,
-    this.specialArgument,
-  });
-
-  @override
-  String toString() {
-    return "{loc: $location, eatPiece: $eatenPiece, args: $specialArgument}";
-  }
-}

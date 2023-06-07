@@ -1,11 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
-import 'package:game_template/screens/games/chess/widget/chess_board_builder.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
-
-import '../chess_constants.dart';
-
+import '../models/chess_constants.dart';
+import 'package:flutter/material.dart';
+import 'chess_board_builder.dart';
 
 class ChessPlayBoard extends StatefulWidget {
   ChessPlayBoard({
@@ -24,7 +21,7 @@ class _ChessPlayBoardState extends State<ChessPlayBoard> {
   void initState() {
     super.initState();
     youAreWhite = true;
-    fenString = "";
+    fenString = "r3k2r/pbppq1pp/1pn2p1n/2b1p3/2B1P3/1PN2N1P/PBPPQPP1/R3K2R w KQkq - 1 9";
   }
   
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/games/chess/logic/chess_logic.dart';
+import 'package:game_template/screens/games/chess/models/chess_board_state.dart';
 
-import 'widget/chess_play_board.dart';
+import '../widgets/chess_play_board.dart';
 
 class ChessInitScreen extends StatelessWidget {
   const ChessInitScreen({super.key});

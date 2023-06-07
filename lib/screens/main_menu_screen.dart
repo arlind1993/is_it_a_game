@@ -17,7 +17,7 @@ class MainMenuScreen extends StatelessWidget {
               text: "Main menu",
             ),
             TextButton(onPressed: () {
-              context.go("/game_selector/wire");
+              context.go("/game_selector/chess");
             }, child: TextWidget(text: "Redirect"))
           ],
         ),

@@ -1,10 +1,21 @@
 import 'package:flutter_svg/flutter_svg.dart';
+///LOWKEY DONE
 enum ChessGameState{
   WhiteWin,
   BlackWin,
   Draw,
   None,
 }
+
+enum ChessPieceType{
+  Pawn,
+  Bishop,
+  Knight,
+  Rook,
+  Queen,
+  King,
+}
+
 class ChessConstants{
   static ChessConstants _chessConstants = ChessConstants._();
   factory ChessConstants(){

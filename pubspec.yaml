@@ -70,3 +70,6 @@ flutter_icons:
   image_path: "assets/icon.png"
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icon-adaptive-foreground.png"
+
+analyzer:
+
