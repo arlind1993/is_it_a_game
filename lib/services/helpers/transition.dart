@@ -103,7 +103,7 @@ class _MyRevealState extends State<_MyReveal> {
   }
 
   void _statusListener(AnimationStatus status) {
-    _log.fine(() => 'status: $status');
+    //_log.fine(() => 'status: $status');
     switch (status) {
       case AnimationStatus.completed:
         setState(() {

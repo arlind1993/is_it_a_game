@@ -1,5 +1,7 @@
+import 'chess_board_state.dart';
 import 'chess_constants.dart';
 import 'chess_location.dart';
+import 'chess_possible_move_group.dart';
 ///LOWKEY DONE
 class ChessPiece{
   bool isWhite;
@@ -36,7 +38,7 @@ class ChessPiece{
   @override
   String toString() {
     // TODO: implement toString
-    return "CP{type: $pieceCodeColor, location: $location}";
+    return "CP{piece: $pieceCodeColor, loc: $location ${eaten?", dead": ""}}";
   }
 
   bool operator == (o) => o is ChessPiece

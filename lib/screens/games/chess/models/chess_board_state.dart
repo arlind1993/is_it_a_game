@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:game_template/screens/games/chess/models/chess_possible_move_group.dart';
+import 'package:game_template/services/extensions/logging_extensions.dart';
 import 'package:logging/logging.dart';
 import 'chess_constants.dart';
 import 'chess_location.dart';
@@ -18,15 +19,14 @@ class ChessBoardState{
   bool whiteKingSide;
   ChessLocation? lastEnPassantMove;
   Map<ChessLocation,ChessPiece> gamePiecesMapped;
+  Set<ChessPiece> deadChessPieces;
   int halfMovesFromCoPM;
   int totalFullMoves;
   ChessGameState gameState;
 
   String get actualFen => ChessFenAlgorithms().chessBoardToFen(this);
   List<ChessPiece> get aliveGamePieces => gamePiecesMapped.values.where((element) => !element.eaten).toList();
-  List<ChessPiece> get deadGamePieces => gamePiecesMapped.values.where((element) => element.eaten).toList();
   Map<ChessLocation,ChessPiece> get aliveGamePiecesMapped => Map.fromEntries(gamePiecesMapped.entries.where((element) => !element.value.eaten));
-  Map<ChessLocation,ChessPiece> get deadGamePiecesMapped => Map.fromEntries(gamePiecesMapped.entries.where((element) => element.value.eaten));
 
   ChessBoardState({
     required this.isWhiteTurn,
@@ -39,7 +39,8 @@ class ChessBoardState{
     required this.halfMovesFromCoPM,
     required this.totalFullMoves,
     this.gameState = ChessGameState.None,
-  }): gamePiecesMapped = {}..addEntries(gamePieces.where((element) => !element.eaten).map((e) => MapEntry(e.location, e)));
+  }): gamePiecesMapped = Map.fromEntries(gamePieces.where((element) => !element.eaten).map((e) => MapEntry(e.location, e))),
+      deadChessPieces = Set.from(gamePieces.where((element) => element.eaten));
 
   ChessBoardState.clone(ChessBoardState chessBoardState):
     isWhiteTurn = chessBoardState.isWhiteTurn,
@@ -47,115 +48,137 @@ class ChessBoardState{
     blackKingSide = chessBoardState.blackKingSide,
     whiteQueenSide = chessBoardState.whiteQueenSide,
     whiteKingSide = chessBoardState.whiteKingSide,
-    lastEnPassantMove = chessBoardState.lastEnPassantMove,
-    gamePiecesMapped = chessBoardState.gamePiecesMapped,
+    lastEnPassantMove = chessBoardState.lastEnPassantMove == null
+      ? null: ChessLocation.clone(chessBoardState.lastEnPassantMove!),
+    gamePiecesMapped = Map.from(chessBoardState.gamePiecesMapped),
+    deadChessPieces = Set.from(chessBoardState.deadChessPieces),
     halfMovesFromCoPM = chessBoardState.halfMovesFromCoPM,
     totalFullMoves = chessBoardState.totalFullMoves,
     gameState = chessBoardState.gameState;
 
   ChessBoardState getNewBoardFromMove(PossibleMoveGroup move){
     if(!move.changeMade) return this;
+
     ChessBoardState newChessBoard = ChessBoardState.clone(this);
     newChessBoard.isWhiteTurn = !newChessBoard.isWhiteTurn;
     newChessBoard.halfMovesFromCoPM += 1;
     if(!newChessBoard.isWhiteTurn){
       newChessBoard.totalFullMoves += 1;
     }
-    lastEnPassantMove = null;
-    newChessBoard.gamePiecesMapped = newChessBoard.gamePiecesMapped.map((key, value) {
-      if (key == move.pieceMovement.from.location && value == move.pieceMovement.from
-        && move.pieceMovement.from != move.pieceMovement.to) {//Movement
-        if(move.pieceMovement.from.pieceType == ChessPieceType.Pawn){
-          newChessBoard.halfMovesFromCoPM = 0;
-          if((move.pieceMovement.from.location - move.pieceMovement.to.location).rank.abs() == 2){//Double pawn push
-            lastEnPassantMove = move.pieceMovement.to.location;
-          }
-        }else if(move.pieceMovement.from.pieceType == ChessPieceType.Rook){
-          bool castlingStillPossible = true;
-          if(move.pieceMovement.from.isWhite){
-            if(!newChessBoard.whiteKingSide && !newChessBoard.whiteQueenSide){
-              castlingStillPossible = false;
+    newChessBoard.lastEnPassantMove = null;
+
+    if(move.eatenPiece != null && newChessBoard.gamePiecesMapped[move.eatenPiece?.location] == move.eatenPiece){
+      newChessBoard.halfMovesFromCoPM = 0;
+      newChessBoard.deadChessPieces.add(newChessBoard.gamePiecesMapped[move.eatenPiece?.location]!);
+      newChessBoard.gamePiecesMapped.remove(move.eatenPiece?.location);
+    }
+    if(move.kingSide || move.queenSide){
+      ChessPiece kingOfMoveSide = newChessBoard.gamePiecesMapped.values.firstWhere((element) => !element.eaten
+          && element.isWhite == move.pieceMovement.from.isWhite && element.pieceType == ChessPieceType.King
+      );//if move was made from white -> white, black if black
+      if (move.queenSide){//QueenSide
+        ChessPiece queenSideRook = newChessBoard.gamePiecesMapped.values.firstWhere((element) => !element.eaten
+            && element.isWhite == kingOfMoveSide.isWhite
+            && element.pieceType == ChessPieceType.Rook
+            && element.location.rank == kingOfMoveSide.location.rank
+            && element.location.file < kingOfMoveSide.location.file
+        );
+        newChessBoard.gamePiecesMapped.remove(kingOfMoveSide.location);
+        newChessBoard.gamePiecesMapped.remove(queenSideRook.location);
+        newChessBoard.gamePiecesMapped.putIfAbsent(kingOfMoveSide.location..file -= 2, () => kingOfMoveSide);
+        newChessBoard.gamePiecesMapped.putIfAbsent(queenSideRook.location..file = kingOfMoveSide.location.file + 1, () => queenSideRook);
+        if(move.pieceMovement.from.isWhite){
+          newChessBoard.whiteKingSide = false;
+          newChessBoard.whiteQueenSide = false;
+        }else{
+          newChessBoard.blackKingSide = false;
+          newChessBoard.blackQueenSide = false;
+        }
+      }else if(move.kingSide){//KingSide
+        ChessPiece kingSideRook = newChessBoard.gamePiecesMapped.values.firstWhere((element) => !element.eaten
+            && element.isWhite == kingOfMoveSide.isWhite
+            && element.pieceType == ChessPieceType.Rook
+            && element.location.rank == kingOfMoveSide.location.rank
+            && element.location.file > kingOfMoveSide.location.file
+        );
+        newChessBoard.gamePiecesMapped.remove(kingOfMoveSide.location);
+        newChessBoard.gamePiecesMapped.remove(kingSideRook.location);
+
+
+        newChessBoard.gamePiecesMapped.putIfAbsent(kingOfMoveSide.location..file += 2, () => kingOfMoveSide);
+        newChessBoard.gamePiecesMapped.putIfAbsent(kingSideRook.location..file = kingOfMoveSide.location.file - 1, () => kingSideRook);
+        if(move.pieceMovement.from.isWhite){
+          newChessBoard.whiteKingSide = false;
+          newChessBoard.whiteQueenSide = false;
+        }else{
+          newChessBoard.blackKingSide = false;
+          newChessBoard.blackQueenSide = false;
+        }
+      }
+    }else{
+      newChessBoard.gamePiecesMapped = newChessBoard.gamePiecesMapped.map((key, value) {//Movement
+        if (key == move.pieceMovement.from.location && value == move.pieceMovement.from
+            && move.pieceMovement.from != move.pieceMovement.to) {
+          if(move.pieceMovement.from.pieceType == ChessPieceType.Pawn){
+            newChessBoard.halfMovesFromCoPM = 0;
+            if((move.pieceMovement.from.location - move.pieceMovement.to.location).rank.abs() == 2){//Double pawn push
+              newChessBoard.lastEnPassantMove = move.pieceMovement.to.location;
             }
-          }else{
-            if(!newChessBoard.blackKingSide && !newChessBoard.blackQueenSide){
-              castlingStillPossible = false;
+          }else if(move.pieceMovement.from.pieceType == ChessPieceType.Rook){
+            bool castlingStillPossible = true;
+            if(move.pieceMovement.from.isWhite){
+              if(!newChessBoard.whiteKingSide && !newChessBoard.whiteQueenSide){
+                castlingStillPossible = false;
+              }
+            }else{
+              if(!newChessBoard.blackKingSide && !newChessBoard.blackQueenSide){
+                castlingStillPossible = false;
+              }
             }
-          }
-          if(castlingStillPossible){
-            ChessPiece king = newChessBoard.gamePiecesMapped.values.firstWhere((element) => !element.eaten
-                && element.isWhite == move.pieceMovement.from.isWhite && element.pieceType == ChessPieceType.King
-            );
-            if(move.pieceMovement.from.location.file < king.location.file){
-              if(move.pieceMovement.from.isWhite) {
+            if(castlingStillPossible){
+              ChessPiece king = newChessBoard.gamePiecesMapped.values.firstWhere((element) => !element.eaten
+                  && element.isWhite == move.pieceMovement.from.isWhite && element.pieceType == ChessPieceType.King
+              );
+              if(move.pieceMovement.from.location.file < king.location.file){
+                if(move.pieceMovement.from.isWhite) {
+                  newChessBoard.whiteQueenSide = false;
+                }else{
+                  newChessBoard.blackQueenSide = false;
+                }
+              }else{
+                if(move.pieceMovement.from.isWhite) {
+                  newChessBoard.whiteKingSide = false;
+                }else{
+                  newChessBoard.blackKingSide = false;
+                }
+              }
+            }
+          }else if(move.pieceMovement.from.pieceType == ChessPieceType.King){
+            bool castlingStillPossible = true;
+            if(move.pieceMovement.from.isWhite){
+              if(!newChessBoard.whiteKingSide && !newChessBoard.whiteQueenSide){
+                castlingStillPossible = false;
+              }
+            }else{
+              if(!newChessBoard.blackKingSide && !newChessBoard.blackQueenSide){
+                castlingStillPossible = false;
+              }
+            }
+            if(castlingStillPossible){
+              if(move.pieceMovement.from.isWhite){
+                newChessBoard.whiteKingSide = false;
                 newChessBoard.whiteQueenSide = false;
               }else{
+                newChessBoard.blackKingSide = false;
                 newChessBoard.blackQueenSide = false;
               }
-            }else{
-              if(move.pieceMovement.from.isWhite) {
-                newChessBoard.whiteKingSide = false;
-              }else{
-                newChessBoard.blackKingSide = false;
-              }
             }
           }
-        }else if(move.pieceMovement.from.pieceType == ChessPieceType.King){
-          bool castlingStillPossible = true;
-          if(move.pieceMovement.from.isWhite){
-            if(!newChessBoard.whiteKingSide && !newChessBoard.whiteQueenSide){
-              castlingStillPossible = false;
-            }
-          }else{
-            if(!newChessBoard.blackKingSide && !newChessBoard.blackQueenSide){
-              castlingStillPossible = false;
-            }
-          }
-          if(castlingStillPossible){
-            if(move.pieceMovement.from.isWhite){
-              newChessBoard.whiteKingSide = false;
-              newChessBoard.whiteQueenSide = false;
-            }else{
-              newChessBoard.whiteKingSide = false;
-              newChessBoard.whiteQueenSide = false;
-            }
-          }
+          return MapEntry(move.pieceMovement.to.location, move.pieceMovement.to);
         }
-        return MapEntry(move.pieceMovement.to.location, move.pieceMovement.to);
-      }
-      if(move.eatenPiece != null && key == move.eatenPiece?.location && value == move.eatenPiece){//Eaten Piece
-        newChessBoard.halfMovesFromCoPM = 0;
-        return MapEntry(key, value..eaten = true);
-      }
-      if(move.queenSide){//KingSide
-        if(key == move.pieceMovement.from.location && value == move.pieceMovement.from){//The King
-          return MapEntry(key..file -= 2, value..location -= ChessLocation(rank: 0, file: 2));
-        }
-        if(value.isWhite == move.pieceMovement.from.isWhite
-          && value.pieceType == ChessPieceType.Rook
-          && value.eaten == false
-          && value.location.rank == move.pieceMovement.from.location.rank
-          && value.location.file < move.pieceMovement.from.location.file
-        ){//The Rook
-          return MapEntry(key..file -= 1, value..location -= ChessLocation(rank: 0, file: 1));
-        }
-      }
-      if(move.queenSide){//QueenSide
-        if(key == move.pieceMovement.from.location && value == move.pieceMovement.from){//The King
-          return MapEntry(key..file += 2, value..location += ChessLocation(rank: 0, file: 2));
-        }
-        if(value.isWhite == move.pieceMovement.from.isWhite
-            && value.pieceType == ChessPieceType.Rook
-            && value.eaten == false
-            && value.location.rank == move.pieceMovement.from.location.rank
-            && value.location.file < move.pieceMovement.from.location.file
-        ){//The Rook
-          return MapEntry(key..file += 1, value..location += ChessLocation(rank: 0, file: 1));
-        }
-      }
-      return MapEntry(key, value);//No Change
-    });
-
-
+        return MapEntry(key, value);//No Change
+      });
+    }
     return newChessBoard;
   }
 
@@ -168,6 +191,25 @@ class ChessBoardState{
       "turn":this.isWhiteTurn ? "white": "black",
       "fen":this.actualFen
     }.toString();
+  }
+
+  String toGridVisual(){
+    StringBuffer stringBuffer = StringBuffer();
+
+    for(int i = 0; i < ChessConstants().CHESS_SIZE_SQUARE; i++){
+      stringBuffer.writeln("-"*(ChessConstants().CHESS_SIZE_SQUARE * 4 + 1));
+      for(int j = 0; j < ChessConstants().CHESS_SIZE_SQUARE; j++){
+
+        stringBuffer.write("|");
+        stringBuffer.write(" ${gamePiecesMapped[ChessLocation(rank: ChessConstants().CHESS_SIZE_SQUARE-i, file: j+1)]?.pieceCodeColor ?? " "} ");
+        if(j == ChessConstants().CHESS_SIZE_SQUARE-1){
+          stringBuffer.writeln("|");
+        }
+      }
+
+    }
+    stringBuffer.writeln("-"*(ChessConstants().CHESS_SIZE_SQUARE * 4 + 1));
+    return stringBuffer.toString();
   }
 
   @override

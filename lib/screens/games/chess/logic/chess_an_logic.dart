@@ -22,23 +22,31 @@ class ChessANAlgorithms{
       throw "To many game pieces eaten or a game piece appeared out of nowhere";
     }
 
-    List<ChessMovement> currentPiecesChanged = [];
-
+    List<NullableChessMovement> currentPiecesChanged = [];
+    print(previousState.gamePiecesMapped);
     for(MapEntry<ChessLocation,ChessPiece> previousPiece in previousState.gamePiecesMapped.entries){
       ChessPiece prev = previousPiece.value;
-      ChessPiece curr = currentState.gamePiecesMapped[previousPiece.key] ?? ChessPiece.clone(prev)..eaten = true;
+      ChessPiece? curr = currentState.gamePiecesMapped[previousPiece.key];
       if(prev != curr){
-        currentPiecesChanged.add(ChessMovement(from: prev, to: curr));
+        currentPiecesChanged.add(NullableChessMovement(from: prev, to: curr));
+      }
+    }
+    for(MapEntry<ChessLocation,ChessPiece> currentPiece in currentState.gamePiecesMapped.entries){
+      ChessPiece curr = currentPiece.value;
+      ChessPiece? prev = previousState.gamePiecesMapped[currentPiece.key];
+      if(curr != prev){
+        currentPiecesChanged.add(NullableChessMovement(from: prev, to: curr));
       }
     }
 
     if(currentPiecesChanged.length == 0){
       throw "No movement observed";
-    }else if(currentPiecesChanged.length > 3){
+    }else if(currentPiecesChanged.length > 4){
       _logger.warning("Wierd af case so many movements ${currentPiecesChanged}");
-    }else{
-
     }
+
+    _logger.fine(currentPiecesChanged);
+
 
     return "";
   }

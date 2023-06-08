@@ -25,7 +25,6 @@ class ChessPossibleMovesAlgorithms{
   List<PossibleMoveGroup> getPossibleMovesForPiece(ChessPiece chessPiece, ChessBoardState gameState){
 
     if(gameState.isWhiteTurn && chessPiece.isWhite){//movesForWhite
-      _logger.fine("Moves only for white");
       switch(chessPiece.pieceType){
         case ChessPieceType.Pawn:
           List<PossibleMoveGroup> pawnLocations= [];
@@ -35,7 +34,6 @@ class ChessPossibleMovesAlgorithms{
                 file : gameState.lastEnPassantMove!.file
             );
             ChessPiece? lastEnPassantMovedPiece = gameState.aliveGamePiecesMapped[actualLocEnPassantPiece];
-            _logger.warning("En passant: $lastEnPassantMovedPiece");
             if(lastEnPassantMovedPiece !=null && !lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
@@ -147,7 +145,6 @@ class ChessPossibleMovesAlgorithms{
             false,
           ];
           while(stoppedTlTrBlBR.any((element) => !element)){
-            _logger.info("$rankDx loop -> { $stoppedTlTrBlBR}");
             if(!stoppedTlTrBlBR[0]){//Top Left
               ChessLocation toThisLocation = ChessLocation(
                   rank: chessPiece.location.rank + rankDx,
@@ -273,7 +270,6 @@ class ChessPossibleMovesAlgorithms{
             false,
           ];
           while(stoppedTBLR.any((element) => !element)){
-            _logger.info("$rankDx loop -> { $stoppedTBLR}");
             if(!stoppedTBLR[0]){//Top
               ChessLocation toThisLocation = ChessLocation(
                   rank: chessPiece.location.rank + rankDx,
@@ -403,7 +399,6 @@ class ChessPossibleMovesAlgorithms{
             false,
           ];
           while(stoppedTBLRQEZC.any((element) => !element)){
-            _logger.info("$rankDx loop -> { $stoppedTBLRQEZC}");
             if(!stoppedTBLRQEZC[0]){//Top
               ChessLocation toThisLocation = ChessLocation(
                   rank: chessPiece.location.rank + rankDx,
@@ -647,6 +642,7 @@ class ChessPossibleMovesAlgorithms{
           }
 
           if(gameState.whiteQueenSide){
+
             List<PossibleMoveGroup> queenSide = [];
             bool blocked = false;
             bool touchdown = false;
@@ -664,14 +660,14 @@ class ChessPossibleMovesAlgorithms{
                 queenSide.add(PossibleMoveGroup(
                   pieceMovement: ChessMovement(
                     from: chessPiece,
-                    to: ChessPiece.clone(chessPiece)..location
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
                   ), queenSide: true));
               }else{
                 if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
                   queenSide.add(PossibleMoveGroup(
                   pieceMovement: ChessMovement(
                     from: chessPiece,
-                    to: ChessPiece.clone(chessPiece)..location
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
                   ), queenSide: true));
                   touchdown = true;
                 }
@@ -701,14 +697,14 @@ class ChessPossibleMovesAlgorithms{
                 kingSide.add(PossibleMoveGroup(
                   pieceMovement: ChessMovement(
                     from: chessPiece,
-                    to: ChessPiece.clone(chessPiece)
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
                   ), kingSide: true));
               }else{
                 if(pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
                   kingSide.add(PossibleMoveGroup(
                   pieceMovement: ChessMovement(
                     from: chessPiece,
-                    to: ChessPiece.clone(chessPiece)
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
                   ), kingSide: true));
                   touchdown = true;
                 }
@@ -720,12 +716,9 @@ class ChessPossibleMovesAlgorithms{
               kingLocations.addAll(kingSide);
             }
           }
-
-
           return kingLocations.where((element) => element.pieceMovement.to.location.inside).toList();
       }
     }else if(!gameState.isWhiteTurn && !chessPiece.isWhite){//Moves for black
-      _logger.fine("Moves only for black");
       switch(chessPiece.pieceType){
         case ChessPieceType.Pawn:
           List<PossibleMoveGroup> pawnLocations= [];
@@ -735,7 +728,6 @@ class ChessPossibleMovesAlgorithms{
                 file : gameState.lastEnPassantMove!.file
             );
             ChessPiece? lastEnPassantMovedPiece = gameState.aliveGamePiecesMapped[actualLocEnPassantPiece];
-            _logger.warning("En passant: $lastEnPassantMovedPiece");
             if(lastEnPassantMovedPiece !=null && lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
@@ -837,7 +829,6 @@ class ChessPossibleMovesAlgorithms{
             false,
           ];
           while(stoppedTlTrBlBR.any((element) => !element)){
-            _logger.info("$rankDx loop -> { $stoppedTlTrBlBR}");
             if(!stoppedTlTrBlBR[0]){//Top Left
               ChessLocation toThisLocation = ChessLocation(
                   rank: chessPiece.location.rank + rankDx,
@@ -955,7 +946,6 @@ class ChessPossibleMovesAlgorithms{
             false,
           ];
           while(stoppedTBLR.any((element) => !element)){
-            _logger.info("$rankDx loop -> { $stoppedTBLR}");
             if(!stoppedTBLR[0]){//Top
               ChessLocation toThisLocation = ChessLocation(
                   rank: chessPiece.location.rank + rankDx,
@@ -1077,7 +1067,6 @@ class ChessPossibleMovesAlgorithms{
             false,
           ];
           while(stoppedTBLRQEZC.any((element) => !element)){
-            _logger.info("$rankDx loop -> { $stoppedTBLRQEZC}");
             if(!stoppedTBLRQEZC[0]){//Top
               ChessLocation toThisLocation = ChessLocation(
                   rank: chessPiece.location.rank + rankDx,
@@ -1375,14 +1364,14 @@ class ChessPossibleMovesAlgorithms{
                 kingSide.add(PossibleMoveGroup(
                   pieceMovement: ChessMovement(
                     from: chessPiece,
-                    to: ChessPiece.clone(chessPiece)
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
                   ), kingSide: true));
               }else{
                 if(!pieceStopping.isWhite && pieceStopping.pieceType == ChessPieceType.Rook){
                   kingSide.add(PossibleMoveGroup(
                   pieceMovement: ChessMovement(
                     from: chessPiece,
-                    to: ChessPiece.clone(chessPiece)
+                    to: ChessPiece.clone(chessPiece)..location = toThisLocation
                   ), kingSide: true));
                   touchdown = true;
                 }

@@ -11,6 +11,21 @@ class ChessMovement{
 
   @override
   String toString() {
-    return "From_:$from .... To_:$to";
+    return "Move $from ==> $to";
+  }
+}
+
+class NullableChessMovement{
+  ChessPiece? from;
+  ChessPiece? to;
+
+  NullableChessMovement({
+    this.from,
+    this.to,
+  });
+
+  @override
+  String toString() {
+    return "Move $from ==> $to";
   }
 }

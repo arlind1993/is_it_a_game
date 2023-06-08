@@ -16,6 +16,11 @@ class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable
     required this.file,
   });
 
+  ChessLocation.clone(ChessLocation chessLocation) :
+    this.rank = chessLocation.rank,
+    this.file = chessLocation.file;
+
+
   ChessLocation.fromPieceFen(String notation){
     String fileIntString = "";
     String rankIntString = "";
@@ -26,7 +31,6 @@ class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable
       }else if(character >= 97 && character < 123){
         fileIntString += "${character - 96}";
       }
-      _logger.warning("$character => $fileIntString,$rankIntString");
     }
     file = int.parse(fileIntString);
     rank = int.parse(rankIntString);

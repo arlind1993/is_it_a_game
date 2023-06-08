@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game_template/screens/games/chess/logic/chess_an_logic.dart';
 import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
 import '../models/chess_constants.dart';
@@ -6,18 +7,17 @@ import '../logic/chess_fen_logic.dart';
 import '../models/chess_location.dart';
 import '../models/chess_board_state.dart';
 import '../logic/chess_possible_move_logic.dart';
-import '../models/chess_movement.dart';
 import '../models/chess_piece.dart';
 import '../models/chess_possible_move_group.dart';
 
 class ChessBoardBuilder extends StatefulWidget {
-  final ChessBoardState importedChessState;
+  ChessBoardState previousChessState;
   final bool youAreWhite;
   ChessBoardBuilder({
     required this.youAreWhite,
     String importFen = ChessFenAlgorithms.defaultStartingFen,
     super.key,
-  }): importedChessState = ChessFenAlgorithms().fenToBoard(importFen);
+  }): previousChessState = ChessFenAlgorithms().fenToBoard(importFen);
 
   @override
   State<ChessBoardBuilder> createState() => _ChessBoardBuilderState();
@@ -32,15 +32,24 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
   @override
   void initState() {
     actualPieceSelected = ValueNotifier(null);
-    actualPieceSelected.addListener(() {
-      _logger.info(actualPieceSelected);
-    });
     actualPieceOffset = ValueNotifier(null);
-    actualChessBoard = ValueNotifier(widget.importedChessState);
-    actualChessBoard.addListener(() {// When a move gets played
-      _logger.warning("refresh");
-      setState(() {});
+    actualChessBoard = ValueNotifier(widget.previousChessState);
+
+    actualPieceSelected.addListener(() {
+      //_logger.info(actualPieceSelected);
     });
+    actualChessBoard.addListener(() {// When a move gets played
+      // try{
+        _logger.info("\n"+widget.previousChessState.toGridVisual());
+        _logger.info("\n"+actualChessBoard.value.toGridVisual());
+        ChessANAlgorithms().getLastAlgebraicNotation(widget.previousChessState, actualChessBoard.value);
+      // }catch(e){
+      //   print(e);
+      // }
+
+      widget.previousChessState = actualChessBoard.value;
+    });
+
     super.initState();
   }
 
@@ -77,7 +86,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
                         child: Container(
                           width: constraint.maxWidth / ChessConstants().CHESS_SIZE_SQUARE,
                           height: constraint.maxWidth / ChessConstants().CHESS_SIZE_SQUARE,
-                          color: Color(0xb8aad501),
+                          color: Color(0x98aad501),
                         ),
                       );
                     }
@@ -136,7 +145,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
                         );
                       }
                   ),
-                  ...actualChessBoard.value.aliveGamePieces.map((e) {
+                  ...actualChessBoard.value.gamePiecesMapped.values.map((e) {
                     return ValueListenableBuilder(
                       valueListenable: actualPieceOffset,
                       builder: (context, value, child) {
@@ -180,10 +189,7 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
     _startedEmpty = true;
     ChessLocation? location = _listenerToLocation(event.localPosition, constraint.maxWidth);
     if(location != null) {// inside Board
-      _logger.info(location);
       ChessPiece? currPiece = actualChessBoard.value.aliveGamePiecesMapped[location];
-      _logger.info(currPiece);
-
       if(currPiece!=null && currPiece.isWhite == actualChessBoard.value.isWhiteTurn){// onTop of actual Piece
         _startedEmpty = false;
         if(actualPieceOffset.value==null) actualPieceOffset.value = MapEntry(currPiece, event.localPosition);
@@ -219,7 +225,6 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
         List<PossibleMoveGroup> possibleMoves = ChessPossibleMovesAlgorithms().getPossibleMovesForPiece(
             actualPieceSelected.value!, actualChessBoard.value);
         PossibleMoveGroup? possibleMoveGroup = possibleMoves.firstWhereIfThere((e) => e.pieceMovement.to.location == locationTo);
-        _logger.warning(possibleMoveGroup);
         if(possibleMoveGroup !=null){
           actualChessBoard.value = actualChessBoard.value.getNewBoardFromMove(possibleMoveGroup);
         }
@@ -237,7 +242,6 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
           actualPieceSelected.value = currPiece;
         }
       }
-
       if(actualPieceSelected.value != null){
         actualPieceOffset.value = MapEntry(actualPieceSelected.value!, event.localPosition);
       }
