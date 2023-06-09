@@ -30,25 +30,26 @@ class ChessPossibleMovesAlgorithms{
           List<PossibleMoveGroup> pawnLocations= [];
           if(gameState.lastEnPassantMove!=null){//en passant move
             ChessLocation actualLocEnPassantPiece = ChessLocation(
-                rank : gameState.lastEnPassantMove!.rank - 1,
-                file : gameState.lastEnPassantMove!.file
+              rank : gameState.lastEnPassantMove!.rank - 1,
+              file : gameState.lastEnPassantMove!.file
             );
+            _logger.fine("Alllll -> ${gameState.aliveGamePiecesMapped}->");
             ChessPiece? lastEnPassantMovedPiece = gameState.aliveGamePiecesMapped[actualLocEnPassantPiece];
+            _logger.fine("Last pawn move made -> ${lastEnPassantMovedPiece}->");
             if(lastEnPassantMovedPiece !=null && !lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){
               pawnLocations.add(
-                  PossibleMoveGroup(
-                    pieceMovement: ChessMovement(
-                      from: chessPiece, 
-                      to: ChessPiece.clone(chessPiece)..location = ChessLocation(
-                        rank: chessPiece.location.rank + 1,
-                        file: gameState.lastEnPassantMove!.file
-                      )
-                    ),
-                    eatenPiece: lastEnPassantMovedPiece,
-                    enPassant: true
-                  )
+                PossibleMoveGroup(
+                  pieceMovement: ChessMovement(
+                    from: chessPiece,
+                    to: ChessPiece.clone(chessPiece)..location = ChessLocation(
+                      rank: chessPiece.location.rank + 1,
+                      file: gameState.lastEnPassantMove!.file
+                    )
+                  ),
+                  eatenPiece: lastEnPassantMovedPiece,
+                )
               );//enPassantMove if possible added
             }
           }
@@ -741,7 +742,6 @@ class ChessPossibleMovesAlgorithms{
                       )
                     ),
                       eatenPiece: lastEnPassantMovedPiece,
-                      enPassant: true
                   )
               );//enPassantMove if possible added
             }

@@ -6,21 +6,19 @@ class PossibleMoveGroup{
   ChessPiece? eatenPiece;
   bool kingSide;
   bool queenSide;
-  bool enPassant;
 
-  bool get changeMade => kingSide || queenSide || enPassant || eatenPiece != null || pieceMovement.from != pieceMovement.to;
+  bool get changeMade => kingSide || queenSide || eatenPiece != null || pieceMovement.from != pieceMovement.to;
 
   PossibleMoveGroup({
     required this.pieceMovement,
     this.eatenPiece,
     this.kingSide = false,
     this.queenSide = false,
-    this.enPassant = false,
   });
 
   @override
   String toString() {
-    return "{movement: $pieceMovement, eatPiece: $eatenPiece, args_kqe: {${kingSide?1:0}, ${queenSide?1:0}, ${enPassant?1:0}}}";
+    return "{movement: $pieceMovement, eat: $eatenPiece, args_kq: {${kingSide?1:0}, ${queenSide?1:0}}}";
   }
 
 }

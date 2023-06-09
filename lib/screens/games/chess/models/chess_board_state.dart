@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:game_template/screens/games/chess/models/chess_possible_move_group.dart';
-import 'package:game_template/services/extensions/logging_extensions.dart';
 import 'package:logging/logging.dart';
 import 'chess_constants.dart';
 import 'chess_location.dart';
-import 'chess_movement.dart';
 import 'chess_piece.dart';
 import '../logic/chess_fen_logic.dart';
 
@@ -58,7 +56,6 @@ class ChessBoardState{
 
   ChessBoardState getNewBoardFromMove(PossibleMoveGroup move){
     if(!move.changeMade) return this;
-
     ChessBoardState newChessBoard = ChessBoardState.clone(this);
     newChessBoard.isWhiteTurn = !newChessBoard.isWhiteTurn;
     newChessBoard.halfMovesFromCoPM += 1;
@@ -83,10 +80,13 @@ class ChessBoardState{
             && element.location.rank == kingOfMoveSide.location.rank
             && element.location.file < kingOfMoveSide.location.file
         );
+
         newChessBoard.gamePiecesMapped.remove(kingOfMoveSide.location);
         newChessBoard.gamePiecesMapped.remove(queenSideRook.location);
-        newChessBoard.gamePiecesMapped.putIfAbsent(kingOfMoveSide.location..file -= 2, () => kingOfMoveSide);
-        newChessBoard.gamePiecesMapped.putIfAbsent(queenSideRook.location..file = kingOfMoveSide.location.file + 1, () => queenSideRook);
+        newChessBoard.gamePiecesMapped.putIfAbsent(ChessLocation.clone(kingOfMoveSide.location)..file -= 2, () =>
+          ChessPiece.clone(kingOfMoveSide)..location -= ChessLocation(rank: 0, file: 2));
+        newChessBoard.gamePiecesMapped.putIfAbsent(ChessLocation.clone(queenSideRook.location)..file = kingOfMoveSide.location.file - 1, () =>
+          ChessPiece.clone(queenSideRook)..location = ChessLocation(rank: kingOfMoveSide.location.rank, file: kingOfMoveSide.location.file - 1));
         if(move.pieceMovement.from.isWhite){
           newChessBoard.whiteKingSide = false;
           newChessBoard.whiteQueenSide = false;
@@ -94,6 +94,7 @@ class ChessBoardState{
           newChessBoard.blackKingSide = false;
           newChessBoard.blackQueenSide = false;
         }
+
       }else if(move.kingSide){//KingSide
         ChessPiece kingSideRook = newChessBoard.gamePiecesMapped.values.firstWhere((element) => !element.eaten
             && element.isWhite == kingOfMoveSide.isWhite
@@ -104,9 +105,10 @@ class ChessBoardState{
         newChessBoard.gamePiecesMapped.remove(kingOfMoveSide.location);
         newChessBoard.gamePiecesMapped.remove(kingSideRook.location);
 
-
-        newChessBoard.gamePiecesMapped.putIfAbsent(kingOfMoveSide.location..file += 2, () => kingOfMoveSide);
-        newChessBoard.gamePiecesMapped.putIfAbsent(kingSideRook.location..file = kingOfMoveSide.location.file - 1, () => kingSideRook);
+        newChessBoard.gamePiecesMapped.putIfAbsent(ChessLocation.clone(kingOfMoveSide.location)..file += 2, () =>
+        ChessPiece.clone(kingOfMoveSide)..location += ChessLocation(rank: 0, file: 2));
+        newChessBoard.gamePiecesMapped.putIfAbsent(ChessLocation.clone(kingSideRook.location)..file = kingOfMoveSide.location.file + 1, () =>
+        ChessPiece.clone(kingSideRook)..location = ChessLocation(rank: kingOfMoveSide.location.rank, file: kingOfMoveSide.location.file + 1));
         if(move.pieceMovement.from.isWhite){
           newChessBoard.whiteKingSide = false;
           newChessBoard.whiteQueenSide = false;
@@ -121,8 +123,14 @@ class ChessBoardState{
             && move.pieceMovement.from != move.pieceMovement.to) {
           if(move.pieceMovement.from.pieceType == ChessPieceType.Pawn){
             newChessBoard.halfMovesFromCoPM = 0;
+            _logger.warning("Pawn: ${move.pieceMovement.from} -> ${move.pieceMovement.to}");
             if((move.pieceMovement.from.location - move.pieceMovement.to.location).rank.abs() == 2){//Double pawn push
-              newChessBoard.lastEnPassantMove = move.pieceMovement.to.location;
+              if(move.pieceMovement.from.isWhite){
+                newChessBoard.lastEnPassantMove = move.pieceMovement.to.location - ChessLocation(rank: 1, file: 0);
+              }else{
+                newChessBoard.lastEnPassantMove = move.pieceMovement.to.location + ChessLocation(rank: 1, file: 0);
+              }
+              _logger.warning("En Passant: ${newChessBoard.lastEnPassantMove}");
             }
           }else if(move.pieceMovement.from.pieceType == ChessPieceType.Rook){
             bool castlingStillPossible = true;
@@ -195,11 +203,10 @@ class ChessBoardState{
 
   String toGridVisual(){
     StringBuffer stringBuffer = StringBuffer();
-
+    stringBuffer.writeln();
     for(int i = 0; i < ChessConstants().CHESS_SIZE_SQUARE; i++){
       stringBuffer.writeln("-"*(ChessConstants().CHESS_SIZE_SQUARE * 4 + 1));
       for(int j = 0; j < ChessConstants().CHESS_SIZE_SQUARE; j++){
-
         stringBuffer.write("|");
         stringBuffer.write(" ${gamePiecesMapped[ChessLocation(rank: ChessConstants().CHESS_SIZE_SQUARE-i, file: j+1)]?.pieceCodeColor ?? " "} ");
         if(j == ChessConstants().CHESS_SIZE_SQUARE-1){

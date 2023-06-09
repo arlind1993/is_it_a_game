@@ -23,7 +23,8 @@ class ChessANAlgorithms{
     }
 
     List<NullableChessMovement> currentPiecesChanged = [];
-    print(previousState.gamePiecesMapped);
+    print("${currentState.gamePiecesMapped.length} ${currentState.gamePiecesMapped}");
+
     for(MapEntry<ChessLocation,ChessPiece> previousPiece in previousState.gamePiecesMapped.entries){
       ChessPiece prev = previousPiece.value;
       ChessPiece? curr = currentState.gamePiecesMapped[previousPiece.key];
