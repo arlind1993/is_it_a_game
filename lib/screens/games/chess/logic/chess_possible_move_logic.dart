@@ -723,12 +723,15 @@ class ChessPossibleMovesAlgorithms{
       switch(chessPiece.pieceType){
         case ChessPieceType.Pawn:
           List<PossibleMoveGroup> pawnLocations= [];
+
           if(gameState.lastEnPassantMove!=null){//en passant move
             ChessLocation actualLocEnPassantPiece = ChessLocation(
                 rank : gameState.lastEnPassantMove!.rank + 1,
                 file : gameState.lastEnPassantMove!.file
             );
+            _logger.fine("Alllll -> ${gameState.aliveGamePiecesMapped}->");
             ChessPiece? lastEnPassantMovedPiece = gameState.aliveGamePiecesMapped[actualLocEnPassantPiece];
+            _logger.fine("Last pawn move made -> ${lastEnPassantMovedPiece}->");
             if(lastEnPassantMovedPiece !=null && lastEnPassantMovedPiece.isWhite && chessPiece.location.rank == actualLocEnPassantPiece.rank
                 && (chessPiece.location.file - actualLocEnPassantPiece.file).abs() == 1
             ){

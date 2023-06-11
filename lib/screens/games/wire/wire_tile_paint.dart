@@ -13,6 +13,7 @@ class WireTilePaint extends CustomPainter{
     for(int i = 0; i<size.width; i+=20){
       canvas.drawLine(Offset(i.toDouble(), 0), Offset(i.toDouble(), size.height), paint);
     }
+
     for(int i = 0; i<size.height; i+=20){
       canvas.drawLine(Offset(0,i.toDouble()), Offset(size.width, i.toDouble()), paint);
     }

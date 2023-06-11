@@ -27,34 +27,38 @@ class ChessBoardBuilder extends StatefulWidget {
 
 class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
   Logger _logger = Logger("Chess board builder");
+  late bool _startedEmpty;
   late ValueNotifier<ChessPiece?> actualPieceSelected;
   late ValueNotifier<MapEntry<ChessPiece,Offset>?> actualPieceOffset;
   late ValueNotifier<ChessBoardState> actualChessBoard;
-  late bool _startedEmpty;
-  late ValueNotifier<PossibleMoveGroup> pawnPromotion;
-  ChessPieceType? pawnPromotionType;
+  late ValueNotifier<PossibleMoveGroup?> pawnPromotion;
   @override
   void initState() {
     actualPieceSelected = ValueNotifier(null);
     actualPieceOffset = ValueNotifier(null);
     actualChessBoard = ValueNotifier(widget.previousChessState);
+    pawnPromotion = ValueNotifier(null);
 
-    actualPieceSelected.addListener(() {
-      //_logger.info(actualPieceSelected);
-    });
     actualChessBoard.addListener(() {// When a move gets played
-      try{
-        _logger.info("\n"+widget.previousChessState.toGridVisual());
-        _logger.warning("\n"+actualChessBoard.value.toGridVisual());
-        ChessANAlgorithms().getLastAlgebraicNotation(widget.previousChessState, actualChessBoard.value);
-      }catch(e){
-        print(e);
-      }
-
+      // try{
+        //_logger.warning("\n"+widget.previousChessState.toGridVisual());
+        _logger.info("\n"+actualChessBoard.value.toGridVisual());
+        String move = ChessANAlgorithms().parseGameStatesToAN(
+            widget.previousChessState,
+            actualChessBoard.value
+        );
+        _logger.warning(move);
+      // }catch(e){
+      //   print(e);
+      // }
       widget.previousChessState = actualChessBoard.value;
     });
-    pawnPromotion.addListener(() {
 
+    pawnPromotion.addListener(() {
+      if(pawnPromotion.value != null){
+        actualChessBoard.value = actualChessBoard.value.getNewBoardFromMove(pawnPromotion.value!);
+        pawnPromotion.value = null;
+      }
     });
 
     super.initState();
@@ -211,21 +215,20 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
               actualPieceSelected.value!, actualChessBoard.value);
           PossibleMoveGroup? possibleMoveGroup = possibleMoves.firstWhereIfThere((e) => e.pieceMovement.to.location == location);
           if(possibleMoveGroup !=null){
-            if(actualPieceSelected.value!.pieceType == ChessPieceType.Pawn && actualPieceSelected.value!.isWhite
-              && possibleMoveGroup.pieceMovement.to.location.rank == ChessConstants().CHESS_SIZE_SQUARE){
-
-            }else if(actualPieceSelected.value!.pieceType == ChessPieceType.Pawn && !actualPieceSelected.value!.isWhite
-                && possibleMoveGroup.pieceMovement.to.location.rank == 1){
+            if(actualPieceSelected.value!.pieceType == ChessPieceType.Pawn && (
+              (actualPieceSelected.value!.isWhite && possibleMoveGroup.pieceMovement.to.location.rank == ChessConstants().CHESS_SIZE_SQUARE)
+              || (!actualPieceSelected.value!.isWhite && possibleMoveGroup.pieceMovement.to.location.rank == 1)
+            )){
+              showDialog(
+                context: context,
+                useSafeArea: true,
+                builder: (context) {
+                  return ChessPromotionPopUp(possibleMoveGroup, pawnPromotion);
+                }
+              );
+            }else{
+              actualChessBoard.value = actualChessBoard.value.getNewBoardFromMove(possibleMoveGroup);
             }
-
-            ChessPiece tempPawn = actualPieceSelected.value!;
-            showDialog(
-              context: context,
-              useSafeArea: true,
-              builder: (context) {
-              return ChessPromotionPopUp(possibleMoveGroup, pawnPromotion);
-            });
-            actualChessBoard.value = actualChessBoard.value.getNewBoardFromMove(possibleMoveGroup);
           }
         }
 
@@ -247,7 +250,20 @@ class _ChessBoardBuilderState extends State<ChessBoardBuilder> {
             actualPieceSelected.value!, actualChessBoard.value);
         PossibleMoveGroup? possibleMoveGroup = possibleMoves.firstWhereIfThere((e) => e.pieceMovement.to.location == locationTo);
         if(possibleMoveGroup !=null){
-          actualChessBoard.value = actualChessBoard.value.getNewBoardFromMove(possibleMoveGroup);
+          if(actualPieceSelected.value!.pieceType == ChessPieceType.Pawn && (
+              (actualPieceSelected.value!.isWhite && possibleMoveGroup.pieceMovement.to.location.rank == ChessConstants().CHESS_SIZE_SQUARE)
+              || (!actualPieceSelected.value!.isWhite && possibleMoveGroup.pieceMovement.to.location.rank == 1)
+          )){
+            showDialog(
+              context: context,
+              useSafeArea: true,
+              builder: (context) {
+                return ChessPromotionPopUp(possibleMoveGroup, pawnPromotion);
+              }
+            );
+          }else{
+            actualChessBoard.value = actualChessBoard.value.getNewBoardFromMove(possibleMoveGroup);
+          }
         }
       }
     }

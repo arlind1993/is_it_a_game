@@ -66,6 +66,12 @@ class _MainWireScreenState extends State<MainWireScreen> {
                 painter: WireTilePaint(cs, ps),
               ),
             ),
+            Container(
+              decoration: BoxDecoration(
+                ///TODO: bmmmmmm
+                shape:  BoxShape.circle
+              ),
+            ),
             TextWidget(
               text: "Wire",
             ),

@@ -223,6 +223,7 @@ class ChessBoardState{
   bool operator ==(Object other) {
     return other is ChessBoardState
       && mapEquals(gamePiecesMapped, other.gamePiecesMapped)
+      && setEquals(deadChessPieces, other.deadChessPieces)
       && this.blackKingSide == other.blackKingSide
       && this.blackQueenSide == other.blackQueenSide
       && this.whiteKingSide == other.whiteKingSide
@@ -236,7 +237,20 @@ class ChessBoardState{
 
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(
+    Object.hashAll(gamePiecesMapped.keys),
+    Object.hashAll(gamePiecesMapped.values),
+    Object.hashAll(deadChessPieces),
+    blackQueenSide,
+    blackKingSide,
+    whiteQueenSide,
+    whiteKingSide,
+    gameState,
+    lastEnPassantMove,
+    isWhiteTurn,
+    halfMovesFromCoPM,
+    totalFullMoves,
+  );
 
 }
 

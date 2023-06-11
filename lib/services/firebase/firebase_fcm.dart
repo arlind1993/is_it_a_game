@@ -2,9 +2,15 @@ import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class FirebaseNotifications{
-  late FirebaseMessaging messaging;
+  static FirebaseNotifications _firebaseNotifications= FirebaseNotifications._();
+  FirebaseMessaging messaging;
   String? token;
 
+  FirebaseNotifications._():
+    messaging = FirebaseMessaging.instance;
+  factory FirebaseNotifications(){
+    return _firebaseNotifications;
+  }
   Future initialise() async{
     messaging = FirebaseMessaging.instance;
     await notificationPermissions();

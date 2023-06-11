@@ -7,8 +7,9 @@ class ChessLocation extends LinkedListEntry<ChessLocation> implements Comparable
   late int rank;
   late int file;
   bool get inside => (rank >= 1 && rank <= ChessConstants().CHESS_SIZE_SQUARE) && (file >= 1 && file <= ChessConstants().CHESS_SIZE_SQUARE);
-  String get nameConvention => inside ? String.fromCharCode(96 + file) + rank.toString() : "out";
-
+  String get nameConvention => inside ? fileName + rankName : "out";
+  String get fileName => String.fromCharCode(96 + file);
+  String get rankName => rank.toString();
   Logger _logger = Logger("Chess piece logic");
 
   ChessLocation({

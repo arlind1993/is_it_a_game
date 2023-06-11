@@ -21,7 +21,7 @@ class _ChessPlayBoardState extends State<ChessPlayBoard> {
   void initState() {
     super.initState();
     youAreWhite = true;
-    fenString = "r3k2r/pbppq1pp/1pn2p1n/2b1p3/2B1P3/1PN2N1P/PBPPQPP1/R3K2R w KQkq - 1 9";
+    fenString = "r3k2r/pbPpq3/2n1pbp1/8/6p1/1PnP1N2/1BPQP1BP/R3K2R w KQkq - 0 17";
   }
   
   @override

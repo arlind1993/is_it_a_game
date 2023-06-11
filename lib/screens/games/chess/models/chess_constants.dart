@@ -5,6 +5,7 @@ enum ChessGameState{
   BlackWin,
   Draw,
   None,
+
 }
 
 enum ChessPieceType{

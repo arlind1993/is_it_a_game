@@ -38,7 +38,7 @@ class ChessPiece{
   @override
   String toString() {
     // TODO: implement toString
-    return "CP{piece: $pieceCodeColor, loc: $location ${eaten?", dead": ""}}";
+    return "CP{${eaten?"¬": ""}$pieceCodeColor$location}";
   }
 
   bool operator == (o) => o is ChessPiece
@@ -48,5 +48,5 @@ class ChessPiece{
       && eaten == o.eaten;
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(isWhite, location, pieceType, eaten);
 }

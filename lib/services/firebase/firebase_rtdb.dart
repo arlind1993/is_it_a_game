@@ -1,11 +1,5 @@
-import 'dart:developer';
-
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/material.dart';
-import 'package:game_template/services/firebase/firebase_auth.dart';
-import 'package:game_template/services/get_it_helper.dart';
-
-import '../helpers/internet_connection.dart';
+import 'internet_connection.dart';
 
 enum DataChange{
   Insert,
@@ -13,17 +7,24 @@ enum DataChange{
   Delete,
 }
 
-class FirebaseRTDB extends ChangeNotifier{
+
+class FirebaseRTDB{
+  static FirebaseRTDB _firebaseRtdb = FirebaseRTDB._private();
+  factory FirebaseRTDB(){
+    return _firebaseRtdb;
+  }
+  FirebaseRTDB._private();
+
   FirebaseDatabase? _firebaseDatabase;
 
-  initialise () async{
-    if(await getIt<InternetConnection>().isConnected()) {
+  initialise() async{
+    if(await InternetConnection().isConnected()) {
       _firebaseDatabase = FirebaseDatabase.instance;
     }else{
       _firebaseDatabase = null;
     }
-    getIt<InternetConnection>().connectivityStream?.listen((event) async{
-      if(await getIt<InternetConnection>().isConnected(connectivityResult: event)){
+    InternetConnection().connectivityStream.listen((event) async{
+      if(await InternetConnection().isConnected(connectivityResult: event)){
         _firebaseDatabase = FirebaseDatabase.instance;
       }else{
         _firebaseDatabase = null;
@@ -37,170 +38,126 @@ class FirebaseRTDB extends ChangeNotifier{
 
   Future<bool> dataExists({
     required String ref,
-    required String keyOfId,
-    required String id,
+    bool Function(DataSnapshot dataSnapshot)? where,
   }) async{
-    if(await getIt<InternetConnection>().isConnected()) {
+    if(await InternetConnection().isConnected()) {
+      if(getReference(ref) == null){
+        return throw ({100: "reference is non existent"});
+      }
       DatabaseReference dbf = getReference(ref)!;
-      DataSnapshot? userSnap;
+      bool exists = false;
       for (DataSnapshot child in (await dbf.get()).children) {
-        if (child.child(keyOfId).value == id) {
-          userSnap = child;
+        if(where == null || where(child)){
+          exists = true;
           break;
         }
       }
-      return userSnap != null;
+      return exists;
     }else{
       return throw ({0: "There is no internet connection"});
     }
   }
 
   Future modifyData({
-    required String ref,
-    required String keyOfId,
-    String? id,
     required DataChange dataChange,
-    bool isPushedId = false,
-    Map<String, dynamic>? data
+    required String ref,
+    String? child,
+    String? pushedChild,
+    Map<String, dynamic>? data,
+    bool updateIfAlreadyInserted = true
   }) async{
-    if(await getIt<InternetConnection>().isConnected()) {
+    if(await InternetConnection().isConnected()) {
       if (getReference(ref) == null) {
-        return null;
+        return throw ({100: "reference is non existent"});
       }
-      DatabaseReference dbf = getReference(ref)!;
-      //log("${dbf.key}");
-      DataSnapshot? userSnap;
-      if (!isPushedId) {
-        for (DataSnapshot child in (await dbf.get()).children) {
-          if (child.child(keyOfId).value == id) {
-            userSnap = child;
-            break;
-          }
+
+      if (dataChange != DataChange.Insert) {
+        if (getReference("$ref/$child") == null) {
+          return throw ({100: "child reference is non existent"});
+        }
+      } else {
+        if (child == null) {
+          child = getReference(ref)!.push().key;
+        }
+        if (getReference("$ref/$child") != null && updateIfAlreadyInserted) {
+          dataChange = DataChange.Update;
         }
       }
 
-      switch(dataChange) {
+      DatabaseReference dbf = getReference("$ref/$child")!;
+      switch (dataChange) {
         case DataChange.Insert:
-          if (userSnap == null) {
-            if (isPushedId) {
-              DatabaseReference dbnr = dbf.push();
-              dbnr.set({
-                keyOfId: dbnr.key,
-                ...?data
-              });
-            } else {
-              dbf.push().set({
-                keyOfId: id,
-                ...?data
-              });
-            }
-          } else {
-            return Future.error({1: "There is already a data insert as this id"});
-          }
+          await dbf.set({
+            if(pushedChild != null)
+              pushedChild: child,
+            ...?data
+          });
           break;
         case DataChange.Update:
-          if (userSnap == null) {
-            return Future.error({2: "There is no data with this id to update"});
-          } else {
-            if (userSnap.value.toString() !=
-                {keyOfId: id, ...?data}.toString()) {
-              dbf.child(userSnap.key!).update({
-                ...?data
-              });
-            } else {
-              log("new data and old data is the same no need for update");
-            }
-          }
+          await dbf.update({
+            if(pushedChild != null)
+              pushedChild: child,
+            ...?data
+          });
           break;
         case DataChange.Delete:
-          if (userSnap == null) {
-            return Future.error({3: "There is no data with this id to delete"});
-          } else {
-            dbf.child(userSnap.key!).remove();
-          }
+          await dbf.remove();
           break;
         default:
           return Future.error({4: "No data changed"});
       }
+      return;
     }else{
       return throw ({0: "There is no internet connection"});
-
     }
   }
 
-  Future updateValue({
+  Future manipulateValue({
     required String ref,
-    required String keyOfId,
-    required String id,
+    required String child,
     required String keyOfChange,
     required Function(dynamic value) action,
     bool onlyIfExists = true
   }) async{
-    if(await getIt<InternetConnection>().isConnected()) {
-      DatabaseReference dbf = getReference(ref)!;
-      //log("${dbf.key}");
-      DataSnapshot? userSnap;
-      for (DataSnapshot child in (await dbf.get()).children) {
-        if (child.child(keyOfId).value == id && (onlyIfExists
-            ? (child.child(keyOfChange).exists && child.child(keyOfChange).value != null)
-            : true)
-        ) {
-          userSnap = child;
-          break;
-        }
+    if(await InternetConnection().isConnected()) {
+      if(getReference("$ref/$child") == null){
+        return throw ({100: "child reference is non existent"});
       }
-      if (userSnap == null) {
-        return Future.error({2: "There is no data with this id to update"});
-      }
-      dbf.child(userSnap.key!).update({
-        keyOfChange: action(userSnap.child(keyOfChange).value).toString()
+      DatabaseReference dbf = getReference("$ref/$child")!;
+      dbf.update({
+        keyOfChange: action((await dbf.child(keyOfChange).get()).value)
       });
     }else{
       return throw ({0: "There is no internet connection"});
-
     }
   }
 
-  Future<Stream<DatabaseEvent>> gatherStreamData({
+  Stream<DatabaseEvent> gatherStreamData({
     required String ref,
-    required String keyOfId,
-    required String id,
-  })async{
-    if(await getIt<InternetConnection>().isConnected()){
-      DatabaseReference dbf = getReference(ref)!;
-
-      Future<Stream<DatabaseEvent>> temp=dbf.get().then((value){
-        return value.children.where((element) {
-          bool equal = element.child(keyOfId).value==id;
-          return equal;
-        });
-      }).then((value){
-        if(value.isEmpty){
-          return throw ({5: "There is no data with this id to get data from"});
-        }
-        return value.first;
-      }).then((value) {
-        return dbf.child(value.key!).onValue;
-      });
-
-      return temp;
-    }else{
-      return throw ({0: "There is no internet connection"});
+    required String child,
+  }){
+    if(getReference("$ref/$child") == null){
+      return throw ({100: "child reference is non existent"});
     }
+    DatabaseReference dbf = getReference("$ref/$child")!;
+    return dbf.onValue;
   }
 
   Future<Iterable<Stream<DatabaseEvent>>> gatherStreamMultiData({
     required String ref,
-    required bool Function(DataSnapshot dataSnapshot) where
-  })async{
-    if(_firebaseDatabase == null){
-      return throw ({0: "There is no internet connection"});
-    }
-    if(await getIt<InternetConnection>().isConnected()) {
+    bool Function(DataSnapshot dataSnapshot)? where
+  }) async{
+    if(await InternetConnection().isConnected()) {
+      if(getReference(ref) == null){
+        return throw ({100: "reference is non existent"});
+      }
       DatabaseReference dbf = getReference(ref)!;
 
-      Future<Iterable<Stream<DatabaseEvent>>> temp = dbf.get().then((value) {
-        return value.children.where((element) => where(element));
+      Future<Iterable<Stream<DatabaseEvent>>> result = dbf.get().then((value) {
+        return value.children.where((element) {
+          if(where == null){ return true; }
+          return where(element);
+        });
       }).then((value) {
         if (value.isEmpty) {
           return throw ({5: "There is no data with this id to get data from"});
@@ -210,36 +167,23 @@ class FirebaseRTDB extends ChangeNotifier{
         return value.map((e) => dbf.child(e.key!).onValue);
       });
 
-      return temp;
+      return result;
     }else{
       return throw ({0: "There is no internet connection"});
     }
   }
 
-
-  Future<Future<DataSnapshot>> gatherFutureData({
+  Future<DataSnapshot> gatherFutureData({
     required String ref,
-    required String keyOfId,
-    required String id,
+    required String child,
   }) async{
-    if(await getIt<InternetConnection>().isConnected()){
-      DatabaseReference dbf = getReference(ref)!;
-
-      Future<Future<DataSnapshot>> temp = dbf.get().then((value){
-        return value.children.where((element) {
-          bool equal = element.child(keyOfId).value==id;
-          return equal;
-        });
-      }).then((value){
-        if(value.isEmpty){
-          return throw ({5: "There is no data with this id to get data from"});
-        }
-        return value.first;
-      }).then((value) {
-        return dbf.child(value.key!).get();
-      });
-
-      return temp;
+    if(await InternetConnection().isConnected()){
+      print("$ref/$child");
+      if(getReference("$ref/$child") == null){
+        return throw ({100: "child reference is non existent"});
+      }
+      DatabaseReference dbf = getReference("$ref/$child")!;
+      return await dbf.get();
     }else{
       return throw ({0: "There is no internet connection"});
     }
@@ -249,10 +193,13 @@ class FirebaseRTDB extends ChangeNotifier{
     required String ref,
     bool Function(DataSnapshot dataSnapshot)? where
   }) async{
-    if(await getIt<InternetConnection>().isConnected()){
+    if(await InternetConnection().isConnected()){
+      if(getReference(ref) == null){
+        return throw ({100: "reference is non existent"});
+      }
       DatabaseReference dbf = getReference(ref)!;
 
-      Future<Iterable<Future<DataSnapshot>>> temp = dbf.get().then((value){
+      Future<Iterable<Future<DataSnapshot>>> result = dbf.get().then((value){
         return value.children.where((element) {
           if(where == null){ return true; }
           return where(element);
@@ -265,26 +212,10 @@ class FirebaseRTDB extends ChangeNotifier{
       }).then((value) {
         return value.map((e)=>dbf.child(e.key!).get());
       });
-
-      return temp;
+      return result;
     }else{
       return throw ({0: "There is no internet connection"});
     }
   }
-
-  Future updateIsLoggedInInfo(bool loggedIn) async{
-    try{
-        await modifyData(
-            ref: "users",
-            keyOfId: "userId",
-            id: getIt<FirebaseAuthUser>().user?.user?.uid,
-            dataChange: DataChange.Update,
-            data: {
-              "loggedIn": loggedIn
-            }
-        );
-    }catch(e){
-      log("account may have been deleted or login details cant be updated");
-    }
-  }
 }
+
