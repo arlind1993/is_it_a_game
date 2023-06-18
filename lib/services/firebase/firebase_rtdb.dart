@@ -17,19 +17,14 @@ class FirebaseRTDB{
 
   FirebaseDatabase? _firebaseDatabase;
 
-  initialise() async{
-    if(await InternetConnection().isConnected()) {
-      _firebaseDatabase = FirebaseDatabase.instance;
-    }else{
-      _firebaseDatabase = null;
-    }
-    InternetConnection().connectivityStream.listen((event) async{
-      if(await InternetConnection().isConnected(connectivityResult: event)){
-        _firebaseDatabase = FirebaseDatabase.instance;
-      }else{
-        _firebaseDatabase = null;
-      }
+  Future<FirebaseRTDB> initialise() async{
+    await InternetConnection().isConnected().then((value) =>
+      _firebaseDatabase = value ? FirebaseDatabase.instance : null
+    );
+    InternetConnection().connectivityStream.listen((event){
+      _firebaseDatabase = InternetConnection().hasConnection(event) ? FirebaseDatabase.instance : null;
     });
+    return this;
   }
 
   DatabaseReference? getReference([String? path]){
@@ -58,7 +53,7 @@ class FirebaseRTDB{
     }
   }
 
-  Future modifyData({
+  Future<String?> modifyData({
     required DataChange dataChange,
     required String ref,
     String? child,
@@ -72,19 +67,19 @@ class FirebaseRTDB{
       }
 
       if (dataChange != DataChange.Insert) {
-        if (getReference("$ref/$child") == null) {
+        if (getReference("$ref${child == null ? "" : "/$child"}") == null) {
           return throw ({100: "child reference is non existent"});
         }
       } else {
         if (child == null) {
           child = getReference(ref)!.push().key;
         }
-        if (getReference("$ref/$child") != null && updateIfAlreadyInserted) {
+        if (getReference("$ref${child == null ? "" : "/$child"}") != null && updateIfAlreadyInserted) {
           dataChange = DataChange.Update;
         }
       }
 
-      DatabaseReference dbf = getReference("$ref/$child")!;
+      DatabaseReference dbf = getReference("$ref${child == null ? "" : "/$child"}")!;
       switch (dataChange) {
         case DataChange.Insert:
           await dbf.set({
@@ -106,7 +101,7 @@ class FirebaseRTDB{
         default:
           return Future.error({4: "No data changed"});
       }
-      return;
+      return dbf.key;
     }else{
       return throw ({0: "There is no internet connection"});
     }
@@ -114,16 +109,16 @@ class FirebaseRTDB{
 
   Future manipulateValue({
     required String ref,
-    required String child,
+    String? child,
     required String keyOfChange,
     required Function(dynamic value) action,
     bool onlyIfExists = true
   }) async{
     if(await InternetConnection().isConnected()) {
-      if(getReference("$ref/$child") == null){
+      if(getReference("$ref${child == null ? "" : "/$child"}") == null){
         return throw ({100: "child reference is non existent"});
       }
-      DatabaseReference dbf = getReference("$ref/$child")!;
+      DatabaseReference dbf = getReference("$ref${child == null ? "" : "/$child"}")!;
       dbf.update({
         keyOfChange: action((await dbf.child(keyOfChange).get()).value)
       });
@@ -134,12 +129,12 @@ class FirebaseRTDB{
 
   Stream<DatabaseEvent> gatherStreamData({
     required String ref,
-    required String child,
+    String? child,
   }){
-    if(getReference("$ref/$child") == null){
+    if(getReference("$ref${child == null ? "" : "/$child"}") == null){
       return throw ({100: "child reference is non existent"});
     }
-    DatabaseReference dbf = getReference("$ref/$child")!;
+    DatabaseReference dbf = getReference("$ref/${child == null ? "" : "/$child"}")!;
     return dbf.onValue;
   }
 
@@ -175,14 +170,14 @@ class FirebaseRTDB{
 
   Future<DataSnapshot> gatherFutureData({
     required String ref,
-    required String child,
+    String? child,
   }) async{
     if(await InternetConnection().isConnected()){
-      print("$ref/$child");
-      if(getReference("$ref/$child") == null){
+      print("$ref${child == null ? "" : "/$child"}");
+      if(getReference("$ref/${child == null ? "" : "/$child"}") == null){
         return throw ({100: "child reference is non existent"});
       }
-      DatabaseReference dbf = getReference("$ref/$child")!;
+      DatabaseReference dbf = getReference("$ref/${child == null ? "" : "/$child"}")!;
       return await dbf.get();
     }else{
       return throw ({0: "There is no internet connection"});
@@ -198,16 +193,16 @@ class FirebaseRTDB{
         return throw ({100: "reference is non existent"});
       }
       DatabaseReference dbf = getReference(ref)!;
-
       Future<Iterable<Future<DataSnapshot>>> result = dbf.get().then((value){
+        print(value.value);
         return value.children.where((element) {
           if(where == null){ return true; }
           return where(element);
         });
       }).then((value){
-        if(value.isEmpty){
-          return throw ({5: "There is no data with this id to get data from"});
-        }
+        // if(value.isEmpty){
+        //   return throw ({5: "There is no data with this id to get data from"});
+        // }
         return value;
       }).then((value) {
         return value.map((e)=>dbf.child(e.key!).get());

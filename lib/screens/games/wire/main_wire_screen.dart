@@ -45,57 +45,55 @@ class _MainWireScreenState extends State<MainWireScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                border: Border.all(
-                    color: Colors.red,
-                    width: 2
-                ),
-              ),
-              child: CustomPaint(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 500,
-                ),
-                painter: WireTilePaint(cs, ps),
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: Colors.red,
+                  width: 2
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                ///TODO: bmmmmmm
-                shape:  BoxShape.circle
+            child: CustomPaint(
+              child: SizedBox(
+                width: double.infinity,
+                height: 500,
               ),
+              painter: WireTilePaint(cs, ps),
             ),
-            TextWidget(
-              text: "Wire",
+          ),
+          Container(
+            decoration: BoxDecoration(
+              ///TODO: bmmmmmm
+              shape:  BoxShape.circle
             ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  cs = [];
-                  ps = [];
-                  for(WireTile wt in widget.wireGame.tiles){
-                    Offset center = wt.tileSize.getTileLocationCenter(wt.polarTile);
-                    List<Offset> points = wt.tileSize.getTileVertices(wt.polarTile);
-                    _logger.info("Offset(${center.dx}, ${center.dy})");
-                    _logger.fine("Points(${points.map((e) => "Of(${e.dx.toStringAsFixed(5)}, ${e.dy.toStringAsFixed(5)})").join(", ")})");
-                    cs.add(center);
-                    ps.add(points);
-                  }
-                });
-              },
-              child: TextWidget(
-                text: "Play",
-              )
+          ),
+          TextWidget(
+            text: "Wire",
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                cs = [];
+                ps = [];
+                for(WireTile wt in widget.wireGame.tiles){
+                  Offset center = wt.tileSize.getTileLocationCenter(wt.polarTile);
+                  List<Offset> points = wt.tileSize.getTileVertices(wt.polarTile);
+                  _logger.info("Offset(${center.dx}, ${center.dy})");
+                  _logger.fine("Points(${points.map((e) => "Of(${e.dx.toStringAsFixed(5)}, ${e.dy.toStringAsFixed(5)})").join(", ")})");
+                  cs.add(center);
+                  ps.add(points);
+                }
+              });
+            },
+            child: TextWidget(
+              text: "Play",
             )
-          ],
-        ),
+          )
+        ],
       ),
     );
   }

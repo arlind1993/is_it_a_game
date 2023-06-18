@@ -7,11 +7,9 @@ class MainMurlanScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: TextWidget(
-          text: "Murlan",
-        ),
+    return Center(
+      child: TextWidget(
+        text: "Murlan",
       ),
     );
   }

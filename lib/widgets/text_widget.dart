@@ -59,7 +59,7 @@ class TextWidget extends StatelessWidget {
     switch(defaultTextFamily){
       case DefaultTextFamily.roboto: textFamily = "Roboto"; break;
       case DefaultTextFamily.permanentMarker: textFamily = "PermanentMarker"; break;
-      case DefaultTextFamily.custom: default: textFamily = customTextFamily ?? "16"; break;
+      case DefaultTextFamily.custom: default: textFamily = customTextFamily ?? ""; break;
     }
 
     switch(defaultTextWeight){

@@ -7,21 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:game_template/provider/app_lifecycle.dart';
 import 'package:game_template/provider/settings_controller.dart';
-import 'package:game_template/screens/game_selector.dart';
-import 'package:game_template/screens/games/chess/screen/chess_init_screen.dart';
-import 'package:game_template/screens/games/chess/screen/main_chess_screen.dart';
-import 'package:game_template/screens/games/murlan/murlan.dart';
-import 'package:game_template/screens/games/poker/poker.dart';
-import 'package:game_template/screens/games/sudoku/sudoku.dart';
-import 'package:game_template/screens/games/wire/main_wire_screen.dart';
-import 'package:game_template/screens/main_menu_screen.dart';
-import 'package:game_template/screens/settings_screen.dart';
+import 'package:game_template/screens/routes_controller.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
 import 'package:game_template/services/helpers/snack_bar.dart';
-import 'package:game_template/services/helpers/transition.dart';
-
-import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
@@ -71,103 +60,6 @@ void guardedMain() {
 
 
 class MyApp extends StatelessWidget {
-  static final _router = GoRouter(
-    routes: [
-      GoRoute(
-          path: '/',
-          builder: (context, state) {
-            return const MainMenuScreen(key: Key('main menu'));
-          },
-          routes: [
-            GoRoute(
-              path: 'game_selector',
-              pageBuilder: (context, state) {
-                return getIt<CustomTransitionBuilder>().build(
-                  child: GameSelector(key: Key('game selection')),
-                  color: getIt<AppColor>().greenContrast
-                );
-              },
-              routes: [
-                GoRoute(
-                  path: 'chess',
-                  pageBuilder: (context, state) {
-                    return getIt<CustomTransitionBuilder>().build<void>(
-                      child: MainChessScreen(
-                        key: const Key('chess'),
-                      ),
-                      color: getIt<AppColor>().greenContrast,
-                    );
-                  },
-                  routes: [
-                    GoRoute(
-                      path: 'play',
-                      pageBuilder: (context, state) {
-                        return getIt<CustomTransitionBuilder>().build<void>(
-                          child: ChessInitScreen(
-                            key: const Key('chess play'),
-                          ),
-                          color: getIt<AppColor>().greenContrast,
-                        );
-                      },
-                    )
-                  ]
-                ),
-                GoRoute(
-                  path: 'murlan',
-                  pageBuilder: (context, state) {
-                    return getIt<CustomTransitionBuilder>().build<void>(
-                      child: MainMurlanScreen(
-                        key: const Key('murlan'),
-                      ),
-                      color: getIt<AppColor>().greenContrast,
-                    );
-                  },
-                ),
-                GoRoute(
-                  path: 'poker',
-                  pageBuilder: (context, state) {
-                    return getIt<CustomTransitionBuilder>().build<void>(
-                      child: MainPokerScreen(
-                        key: const Key('poker'),
-                      ),
-                      color: getIt<AppColor>().greenContrast,
-                    );
-                  },
-                ),
-                GoRoute(
-                  path: 'sudoku',
-                  pageBuilder: (context, state) {
-                    return getIt<CustomTransitionBuilder>().build<void>(
-                      child: MainSudokuScreen(
-                        key: const Key('sudoku'),
-                      ),
-                      color: getIt<AppColor>().greenContrast,
-                    );
-                  },
-                ),
-                GoRoute(
-                  path: 'wire',
-                  pageBuilder: (context, state) {
-                    return getIt<CustomTransitionBuilder>().build<void>(
-                      child: MainWireScreen(
-                        key: const Key('wire'),
-                      ),
-                      color: getIt<AppColor>().greenContrast,
-                    );
-                  },
-                )
-              ]
-            ),
-            GoRoute(
-              path: 'settings',
-              builder: (context, state) {
-                return const SettingsScreen(key: Key('settings'));
-              },
-            ),
-          ]
-      ),
-    ],
-  );
 
   const MyApp({
     super.key,
@@ -186,21 +78,21 @@ class MyApp extends StatelessWidget {
             title: 'Is it a Game?',
             theme: ThemeData.from(
               colorScheme: ColorScheme.fromSeed(
-                seedColor: getIt.get<AppColor>().beigeMain,
+                seedColor: getIt<AppColor>().beigeMain,
                 background: getIt<AppColor>().greenContrast,
               ),
               textTheme: TextTheme(
                 bodyMedium: TextStyle(
-                  color: getIt.get<AppColor>().ink,
+                  color: getIt<AppColor>().ink,
                 ),
               ),
               useMaterial3: true,
             ),
-            routeInformationProvider: _router.routeInformationProvider,
-            routeInformationParser: _router.routeInformationParser,
-            routerDelegate: _router.routerDelegate,
+            routeInformationProvider: getIt<RoutesController>().router.routeInformationProvider,
+            routeInformationParser: getIt<RoutesController>().router.routeInformationParser,
+            routerDelegate: getIt<RoutesController>().router.routerDelegate,
 
-            scaffoldMessengerKey: getIt.get<CustomSnackBar>().scaffoldMessengerKey,
+            scaffoldMessengerKey: getIt<CustomSnackBar>().scaffoldMessengerKey,
           );
         }),
       ),

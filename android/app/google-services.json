@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "664897908568",
+    "firebase_url": "https://isitagame-44725-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "isitagame-44725",
     "storage_bucket": "isitagame-44725.appspot.com"
   },
@@ -14,7 +15,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "664897908568-echgf3dt0comhaktil41i8ddkgmsd0l2.apps.googleusercontent.com",
+          "client_id": "664897908568-c9q60vrelfc4ohuviqk9e3lt60vi0qnf.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,7 +28,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "664897908568-echgf3dt0comhaktil41i8ddkgmsd0l2.apps.googleusercontent.com",
+              "client_id": "664897908568-c9q60vrelfc4ohuviqk9e3lt60vi0qnf.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

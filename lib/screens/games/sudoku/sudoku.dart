@@ -7,11 +7,9 @@ class MainSudokuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: TextWidget(
-          text: "Sudoku",
-        ),
+    return Center(
+      child: TextWidget(
+        text: "Sudoku",
       ),
     );
   }

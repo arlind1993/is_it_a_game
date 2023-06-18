@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/text_widget.dart';
+import '../../widgets/text_widget.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -12,11 +12,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: TextWidget(
-          text: "Settings",
-        ),
+    return Center(
+      child: TextWidget(
+        text: "Settings",
       ),
     );
   }

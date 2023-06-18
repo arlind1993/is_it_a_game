@@ -11,7 +11,7 @@ class FirebaseNotifications{
   factory FirebaseNotifications(){
     return _firebaseNotifications;
   }
-  Future initialise() async{
+  Future<FirebaseNotifications> initialise() async{
     messaging = FirebaseMessaging.instance;
     await notificationPermissions();
 
@@ -24,7 +24,7 @@ class FirebaseNotifications{
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {});
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) {});
-
+    return this;
   }
 
   notificationPermissions() async{

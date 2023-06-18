@@ -14,27 +14,26 @@ class InternetConnection{
   bool connected = true;
 
 
-  initialise() async{
-    ConnectivityResult cr = await connectivity.checkConnectivity();
-    connected = await isConnected(connectivityResult: cr);
+  Future<InternetConnection> initialise() async{
+    await connectivity.checkConnectivity().then((value) async{
+      connected = hasConnection(value);
+    });
     connectivityStream = connectivity.onConnectivityChanged.asBroadcastStream();
     connectivityStream.listen((event) async{
-      connected = await isConnected(connectivityResult: cr);
+      connected = hasConnection(event);
       log("Connected: $connected");
     });
+    return this;
+  }
+  bool hasConnection(ConnectivityResult connectivityResult){
+    return connectivityResult==ConnectivityResult.mobile || connectivityResult==ConnectivityResult.wifi;
   }
 
-  Future<bool> isConnected({ConnectivityResult? connectivityResult}) async {
-    if(connectivityResult == null){
-      await Future.delayed(Duration.zero,() async{
-        connectivityResult = await connectivity.checkConnectivity();
-      });
-    }
-    return connectivityResult==ConnectivityResult.mobile
-        || connectivityResult==ConnectivityResult.wifi;
+  Future<bool> isConnected() async {
+    return connectivity.checkConnectivity().then((value) => hasConnection(value));
   }
 
-  Future<bool> isNotConnected({ConnectivityResult? connectivityResult}) async {
-    return !await isConnected(connectivityResult: connectivityResult);
+  Future<bool> isNotConnected() async {
+    return connectivity.checkConnectivity().then((value) => !hasConnection(value));
   }
 }
