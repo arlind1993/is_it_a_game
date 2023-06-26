@@ -1,20 +1,41 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
 
-enum DefaultTextSizes{
+enum DefaultTextSizes {
   little,
   small,
   medium,
   large,
   extra,
   enormous,
-  custom,
+} extension ExtensionTextSizes on DefaultTextSizes{
+  double get value {
+    switch(this){
+      case DefaultTextSizes.little: return 9;
+      case DefaultTextSizes.small: return 12;
+      case DefaultTextSizes.medium: return 16;
+      case DefaultTextSizes.large: return 18;
+      case DefaultTextSizes.extra: return 24;
+      case DefaultTextSizes.enormous: return 32;
+    }
+  }
 }
+
 enum DefaultTextFamily{
   roboto,
   permanentMarker,
-  custom,
+  magneto,
+} extension ExtensionTextFamily on DefaultTextFamily{
+  String get value {
+    switch(this){
+      case DefaultTextFamily.roboto: return "Roboto";
+      case DefaultTextFamily.permanentMarker: return "Permanent Marker";
+      case DefaultTextFamily.magneto: return "Magneto";
+    }
+  }
 }
 
 enum DefaultTextWeight{
@@ -23,69 +44,111 @@ enum DefaultTextWeight{
   regular,
   bold,
   thick,
-  custom,
+} extension ExtensionTextWeight on DefaultTextWeight{
+  FontWeight get value {
+    switch(this){
+      case DefaultTextWeight.hair: return FontWeight.w100;
+      case DefaultTextWeight.thin: return FontWeight.w300;
+      case DefaultTextWeight.regular: return FontWeight.w400;
+      case DefaultTextWeight.bold: return FontWeight.w700;
+      case DefaultTextWeight.thick: return FontWeight.w900;
+    }
+  }
 }
 
 class TextWidget extends StatelessWidget {
   final String text;
   final Key? key;
-  final TextAlign textAlign;
-  late final double textSize;
-  late final String textFamily;
-  late final FontWeight textWeight;
-  late final Color textColor;
+  final TextDirection? textDirection;
+  final TextAlign? textAlign;
+  final FontWeight? textWeight;
+  final double? lineHeight;
+  final double? textSize;
+  final Color? textColor;
+  final String? textFamily;
+  final int? maxLines;
+  final TextOverflow? overflowType;
+  final List<Shadow>? shadows;
 
-  TextWidget({
-    required this.text,
-    this.key,
-    this.textAlign = TextAlign.center,
-    DefaultTextSizes? defaultTextSizes,
-    double? customTextSize,
-    DefaultTextFamily? defaultTextFamily,
-    String? customTextFamily,
-    DefaultTextWeight? defaultTextWeight,
-    FontWeight? customTextWeight,
+  factory TextWidget({
+    required String text,
+    Key? key,
+    TextAlign textAlign = TextAlign.center,
     Color? textColor,
-  }) : super(key: key) {
-    switch(defaultTextSizes){
-      case DefaultTextSizes.little: textSize = 9; break;
-      case DefaultTextSizes.small: textSize = 12; break;
-      case DefaultTextSizes.medium: textSize = 16; break;
-      case DefaultTextSizes.large: textSize = 18; break;
-      case DefaultTextSizes.extra: textSize = 24; break;
-      case DefaultTextSizes.enormous: textSize = 32; break;
-      case DefaultTextSizes.custom: default: textSize = customTextSize ?? 16; break;
+    double? lineHeight,
+    double? textSize,
+    String? textFamily,
+    FontWeight? textWeight,
+    int? maxLines,
+    TextOverflow? overflowType,
+    List<Shadow>? shadows,
+    double? strokeWidth,
+    Color? strokeColor,
+    TextDirection? textDirection,
+  }){
+    textColor ??= getIt<AppColor>().ink;
+    final paint = Paint();
+    paint.color = textColor;
+    paint.style = PaintingStyle.fill;
+    int precision = 20;
+    if(strokeWidth != null && strokeColor!=null){
+      shadows = List.generate(precision, (index) {
+        final indexRadAngle = 2 * pi / precision * index;
+        return Shadow(
+          color: strokeColor,
+          offset: Offset(cos(indexRadAngle)* strokeWidth, sin(indexRadAngle)* strokeWidth)
+        );
+      });
     }
-    switch(defaultTextFamily){
-      case DefaultTextFamily.roboto: textFamily = "Roboto"; break;
-      case DefaultTextFamily.permanentMarker: textFamily = "PermanentMarker"; break;
-      case DefaultTextFamily.custom: default: textFamily = customTextFamily ?? ""; break;
-    }
-
-    switch(defaultTextWeight){
-      case DefaultTextWeight.hair: textWeight = FontWeight.w100; break;
-      case DefaultTextWeight.thin: textWeight = FontWeight.w300; break;
-      case DefaultTextWeight.regular: textWeight = FontWeight.w500; break;
-      case DefaultTextWeight.bold: textWeight = FontWeight.w700; break;
-      case DefaultTextWeight.thick: textWeight = FontWeight.w900; break;
-      case DefaultTextWeight.custom: default: textWeight = customTextWeight ?? FontWeight.w500; break;
-    }
-
-    this.textColor = textColor ?? getIt<AppColor>().ink;
+    return TextWidget._(
+      text,
+      key,
+      textAlign,
+      textWeight,
+      lineHeight,
+      textSize,
+      textColor,
+      textFamily,
+      maxLines,
+      overflowType,
+      shadows,
+      textDirection,
+    );
   }
+
+  TextWidget._(
+    this.text,
+    this.key,
+    this.textAlign,
+    this.textWeight,
+    this.lineHeight,
+    this.textSize,
+    this.textColor,
+    this.textFamily,
+    this.maxLines,
+    this.overflowType,
+    this.shadows,
+    this.textDirection,
+  ) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
       key: key,
+      textDirection: textDirection,
       textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: overflowType,
       style: TextStyle(
+        height: lineHeight,
         fontFamily: textFamily,
         fontSize: textSize,
         fontWeight: textWeight,
-        color: textColor,
-      ),
+        shadows: shadows,
+        color: textColor
+      )
     );
   }
 }

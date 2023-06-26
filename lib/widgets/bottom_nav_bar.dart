@@ -82,8 +82,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                           Padding(
                             padding: EdgeInsets.only(top: 2),
                             child: TextWidget(
-                              defaultTextSizes: DefaultTextSizes.small,
                               text: bottomNavs.keys.toList()[index],
+                              textSize: DefaultTextSizes.small.value,
                               textColor: screensController.value.contains(bottomNavs.keys.toList()[index].toLowerCase())
                                   ? getIt<AppColor>().greenMain
                                   : getIt<AppColor>().greenContrast,

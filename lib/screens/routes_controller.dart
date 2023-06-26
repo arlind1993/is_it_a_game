@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:game_template/screens/account/account_screen.dart';
 import 'package:game_template/screens/scaffold_screen.dart';
 import 'package:game_template/screens/screens_controller.dart';
 import 'package:go_router/go_router.dart';
@@ -153,7 +154,7 @@ class RoutesController{
                     pathOnBackAction: '/',
                     obstructViewBottomBar: true,
                     visibleBottomBar: true,
-                    child: SettingsScreen(
+                    child: ProfileScreen(
                       key: const Key('profile')
                     )
                   ),

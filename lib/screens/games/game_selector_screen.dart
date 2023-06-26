@@ -47,7 +47,7 @@ class _GameSelectorState extends State<GameSelector> {
         Center(
           child: TextWidget(
             text: "Play Games",
-            defaultTextSizes: DefaultTextSizes.extra,
+            textSize: DefaultTextSizes.extra.value,
           ),
         ),
         Expanded(
