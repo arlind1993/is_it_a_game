@@ -10,6 +10,7 @@ class ScaffoldScreen extends StatelessWidget {
   final bool obstructViewBottomBar;
   String pathOnBackAction;
   Map? dialogMustStay;
+
   ScaffoldScreen({
     this.appBar,
     this.dialogMustStay,
@@ -27,32 +28,42 @@ class ScaffoldScreen extends StatelessWidget {
         return true;
       },
       child: Scaffold(
-        body: SafeArea(
-          child: Builder(
-            builder: (context) {
-              BottomNavBar navBar = BottomNavBar(visible: visibleBottomBar);
-              if(visibleBottomBar && !obstructViewBottomBar){
-                return Stack(
-                  children: [
-                    Positioned.fill(child: child),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: navBar
-                    ),
-                  ],
-                );
-              }else{
-                return Column(
-                  children: [
-                    Expanded(child: child),
-                    navBar
-                  ],
-                );
-              }
+        resizeToAvoidBottomInset: false,
+        body: Builder(
+          builder: (context) {
+            BottomNavBar navBar = BottomNavBar(visible: visibleBottomBar);
+            if(visibleBottomBar && !obstructViewBottomBar){
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: SafeArea(
+                      child: child
+                    )
+                  ),
+                  Positioned(
+                    bottom: MediaQuery.of(context).padding.bottom,
+                    left: 0,
+                    right: 0,
+                    child: navBar
+                  ),
+                ],
+              );
+            }else{
+              return Column(
+                children: [
+                  Expanded(
+                    child: SafeArea(
+                      child: child,
+                    )
+                  ),
+                  navBar,
+                  SizedBox(
+                    height: MediaQuery.of(context).padding.bottom,
+                  )
+                ],
+              );
             }
-          ),
+          }
         ),
       ),
     );

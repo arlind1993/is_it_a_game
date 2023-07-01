@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
+import 'package:game_template/widgets/text_field_widget.dart';
 import 'text_widget.dart';
 import '../services/get_it_helper.dart';
 
@@ -19,6 +21,7 @@ class ButtonWidget extends StatelessWidget {
   final Color? backgroundColor;
   final double? paddingSpacing;
   final FocusNode focusNode;
+  final FocusNodeController? focusNodeController;
 
   factory ButtonWidget({
     Key? key,
@@ -26,6 +29,7 @@ class ButtonWidget extends StatelessWidget {
     double? iconSize,
     Widget? prefixWidgetIcon,
     Widget? suffixWidgetIcon,
+    Color? iconColor,
     IconData? prefixIcon,
     IconData? suffixIcon,
     Color? prefixColor,
@@ -40,11 +44,13 @@ class ButtonWidget extends StatelessWidget {
     VoidCallback? action,
     double? contentHeight,
     double? paddingSpacing,
+    FocusNodeController? focusNodeController,
   }){
-    iconSize ??= DefaultTextSizes.medium.value;
-    prefixColor ??= getIt<AppColor>().ink;
-    suffixColor ??= getIt<AppColor>().ink;
-    elevationColor ??= getIt<AppColor>().ink;
+    iconSize ??= textWidget != null ? textWidget.textSize : DefaultTextSizes.medium.value;
+    iconColor ??= getIt<AppColor>().ink;
+    prefixColor ??= iconColor;
+    suffixColor ??= iconColor;
+    elevationColor ??= iconColor;
     borderWidth ??= 1;
     prefixWidgetIcon ??= prefixIcon == null ? null : Icon(
       prefixIcon,
@@ -71,6 +77,7 @@ class ButtonWidget extends StatelessWidget {
       borderWidth,
       borderRadius,
       paddingSpacing,
+      focusNodeController
     );
   }
 
@@ -89,18 +96,19 @@ class ButtonWidget extends StatelessWidget {
     this.borderWidth,
     this.borderRadius,
     this.paddingSpacing,
-  ):focusNode = FocusNode(), super(key: key);
+    this.focusNodeController,
+  ):focusNode = FocusNode(),
+    super(key: key) {
+    focusNodeController?.focusList.add(CustomFocus(focusNode, "field_submit"));
+    print(focusNodeController?.focusList);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: backgroundColor,
-      borderOnForeground: true,
       shadowColor: elevationColor,
-
       elevation: elevation ?? 0,
-      type: MaterialType.button,
-      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius == null ? BorderRadius.zero : BorderRadius.circular(borderRadius!),
         side: borderColor == null || borderWidth == null ? BorderSide.none : BorderSide(
@@ -110,25 +118,14 @@ class ButtonWidget extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          if(action!=null) {
+          if(action!=null){
             action!();
           }
         },
         child: Container(
-          clipBehavior: Clip.antiAlias,
           padding: paddingSpacing == null ? null : EdgeInsets.all(paddingSpacing!),
           constraints: BoxConstraints(
             minWidth: minWidth ?? 0,
-          ),
-          decoration: BoxDecoration(
-            boxShadow: elevation == null ? null : [
-              BoxShadow(
-                  blurRadius: elevation!,
-                  offset: Offset(0, -50),
-                  color: Colors.grey,
-                  spreadRadius: elevation!,
-              ),
-            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,

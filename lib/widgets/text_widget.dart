@@ -70,6 +70,35 @@ class TextWidget extends StatelessWidget {
   final TextOverflow? overflowType;
   final List<Shadow>? shadows;
 
+  factory TextWidget.fromStyle({
+    required String text,
+    Key? key,
+    TextAlign textAlign = TextAlign.center,
+    int? maxLines,
+    TextOverflow? overflowType,
+    double? strokeWidth,
+    Color? strokeColor,
+    TextDirection? textDirection,
+    TextStyle? textStyle
+  }){
+    return TextWidget(
+        text: text,
+        key: key,
+        textAlign: textAlign,
+        textColor: textStyle?.color,
+        lineHeight: textStyle?.height,
+        textSize: textStyle?.fontSize,
+        textFamily: textStyle?.fontFamily,
+        textWeight: textStyle?.fontWeight,
+        shadows: textStyle?.shadows,
+        maxLines: maxLines,
+        overflowType: overflowType,
+        strokeWidth: strokeWidth,
+        strokeColor: strokeColor,
+        textDirection: textDirection,
+    );
+  }
+
   factory TextWidget({
     required String text,
     Key? key,
