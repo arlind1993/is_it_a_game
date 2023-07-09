@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:game_template/services/extensions/string_extensions.dart';
 import 'package:game_template/widgets/text_widget.dart';
 
 import '../services/app_styles/app_color.dart';
@@ -17,7 +18,6 @@ enum TextFieldTypes{
   integer,
   phone,
   address,
-  date,
 }extension TextFieldTypesExtension on TextFieldTypes{
   TextInputType inputType(){
     switch(this){
@@ -29,33 +29,59 @@ enum TextFieldTypes{
       case TextFieldTypes.integer: return TextInputType.numberWithOptions(signed: true);
       case TextFieldTypes.phone: return TextInputType.phone;
       case TextFieldTypes.address: return TextInputType.streetAddress;
-      case TextFieldTypes.date: return TextInputType.datetime;
     }
   }
   Map<String, String> automaticValidationRegex(){
     switch(this){
-      case TextFieldTypes.text: return {".*" : "The field is not a text"};
+      case TextFieldTypes.text: return {
+        r"^.*$": "Text is not a paragraph",
+      };
       case TextFieldTypes.paragraph: return {};
-      case TextFieldTypes.email: return {"a":"email"};
+      case TextFieldTypes.email: return {
+        "^((?![${RegExTensions.emailNonConsecutive}][${RegExTensions.emailNonConsecutive}]).)*\$":"These characters shouldn't be inputted consecutively: ., -, and _!",
+        r"^([^\@\.\_\-].*[^\@\.\_\-])|[^\@\.\_\-]$":"These characters shouldn't be inputted in the beginning or the end: ., -, and _!",
+        "^[${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}${RegExTensions.emailNonConsecutive}\\@]*\$": "Invalid Character/s",
+        r"^[^@]*@?[^@]*$": "There shouldn't be two '@'!",
+        r"(^(?=^[^@]*)[^@]*$)|(^.{0,64}@.*$)": "There shouldn't be more than 64 characters before '@'!",
+        r"(^(?=^[^@]*)[^@]*$)|(^.*@.{0,253}$)": "There shouldn't be more than 253 characters after '@'!",
+        "(^(?=^[^@]*)[^@]*\$)|(^.*@(([${RegExTensions.allAlphabetNumbers}\\-]{2,})([\\.]))*([${RegExTensions.allAlphabetNumbers}\\-]*)\$)": "There should more than two characters after . in domain section of the email!",
+      };
       case TextFieldTypes.password: return {};
-      case TextFieldTypes.number: return {};
-      case TextFieldTypes.integer: return {};
-      case TextFieldTypes.phone: return {};
-      case TextFieldTypes.address: return {};
-      case TextFieldTypes.date: return {};
+      case TextFieldTypes.number: return {
+        r"^[.,0-9]*$" : "Invalid characters!",
+        r"^[^.,]*.?[^.,]*$" : "There more than one character of type '.' or ','!",
+        r"^([^.,].*[^.,]|[^.,])$": "The character '.' or ',' shouldn't be in the beginning or end",};
+      case TextFieldTypes.integer: return {
+        r"^[/d]*$" : "Invalid characters!",};
+      case TextFieldTypes.phone: return {
+        r"^[/d/+/- ]*$": "Invalid characters",
+        r"^(?!--).*$": "Hyphens can't be inputted consecutively!",
+        r"^(?!--)\+?(00)?([\d] {0,2}-? {0,2}){7,15}$": "No phone number can have more than 15 digits",
+        r"^+?[^+]*$": "The character + can be inputted only in the begging",
+      };
+      case TextFieldTypes.address: return {
+        r"^[#\w\.\,\-]*$": "Invalid characters",
+      };
     }
   }
   Map<String, String> validationRegex(){
     switch(this){
-      case TextFieldTypes.text: return {".*" : "The field is not a text"};
-      case TextFieldTypes.paragraph: return {};
-      case TextFieldTypes.email: return {"al":"email sss"};
-      case TextFieldTypes.password: return {};
-      case TextFieldTypes.number: return {};
-      case TextFieldTypes.integer: return {};
-      case TextFieldTypes.phone: return {};
-      case TextFieldTypes.address: return {};
-      case TextFieldTypes.date: return {};
+      case TextFieldTypes.text: return {
+        r"^.+" : "The text is empty"};
+      case TextFieldTypes.paragraph: return {
+        r"^(.|\n)+$": "The paragraph is empty"};
+      case TextFieldTypes.email: return {
+        "^(?!^.{65,}\\@)(([${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}]+)([${RegExTensions.emailNonConsecutive}])?)*([${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}]+)(?!\\@.{256,}\$)\\@(([${RegExTensions.allAlphabetNumbers}\\-]{2,})([\\.]))+([${RegExTensions.allAlphabetNumbers}\\-]{2,})\$":"The email is not valid"};
+      case TextFieldTypes.password: return {
+        r"^(?=.*[A-Za-z])(?=.*\d).{6,}$":"The password is not valid"};
+      case TextFieldTypes.number: return {
+        r"^[\d]+([.,][\d]+)?$": "The number is not valid"};
+      case TextFieldTypes.integer: return {
+        r"^\d*$":"The integer is not valid"};
+      case TextFieldTypes.phone: return {
+        r"^(?!--)\+?(00)?([\d] {0,2}-? {0,2}){6,14}\d$":"The phone is not valid"};
+      case TextFieldTypes.address: return {
+        "^[#\\w\\.\\,\\-\\'\\\"]+\$":"The address is not valid"};
     }
   }
 }
@@ -145,7 +171,6 @@ class TextFieldWidget extends StatelessWidget {
     double? labelTextSize,
     FontWeight? labelTextWeight,
   }){
-
     Random r = Random();
     String all = 'AaBbCcDdlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1EeFfGgHhIiJjKkL234567890';
     String unique = List.generate(8, (index) => all[r.nextInt(all.length)]).join();
@@ -345,6 +370,7 @@ class TextFieldWidget extends StatelessWidget {
           if(!RegExp(key).hasMatch(editingController.text)){
             allMatches = false;
             error.value = value;
+            return;
           }
         });
       }else{
@@ -352,6 +378,7 @@ class TextFieldWidget extends StatelessWidget {
           if(!RegExp(key).hasMatch(editingController.text)){
             allMatches = false;
             error.value = value;
+            return;
           }
         });
       }
@@ -365,12 +392,27 @@ class TextFieldWidget extends StatelessWidget {
           if (!RegExp(key).hasMatch(editingController.text)) {
             allMatches = false;
             error.value = value;
+            return;
           }
         });
         if (allMatches) error.value = "";
       }
     });
   }
+
+  bool isValid(){
+    if(!required) return true;
+    bool allMatches = true;
+    validateRegex.forEach((key, value) {
+      print("$key -> ${editingController.text}");
+      if (!RegExp(key).hasMatch(editingController.text)) {
+        allMatches = false;
+        return;
+      }
+    });
+    return allMatches;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -382,70 +424,69 @@ class TextFieldWidget extends StatelessWidget {
         child: Column(
           children: [
             ValueListenableBuilder(
-                valueListenable: obscured,
-                builder:(context, value, _) {
-                  print("nnnnnnn");
-                  return TextField(
-                    minLines: minLines,
-                    maxLines: maxLines,
-                    textInputAction: textInputAction,
-                    obscureText: value,
-                    controller: editingController,
-                    clipBehavior: Clip.antiAlias,
-                    onTapOutside: (event) {
-                      FocusScope.of(context).unfocus();
-                    },
-                    expands: false,
-                    style: textStyle,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                      labelText: label,
-                      hintText: placeholder,
-                      errorStyle: errorStyle,
-                      labelStyle: labelStyle,
-                      hintStyle: hintStyle,
-                      alignLabelWithHint: true,
-                      prefixIconConstraints: BoxConstraints(),
-                      suffixIconConstraints: BoxConstraints(),
-                      prefixIcon: prefixIcon == null ? null : Padding(
-                        padding: EdgeInsetsExtension.custom(
-                          horizontal: paddingHorizontal,
-                          vertical: paddingVertical,
-                          right: 0,
-                        ),
-                        child: prefixIcon,
-                      ),
-                      suffixIcon: suffixIcon == null ? null : Padding(
-                        padding: EdgeInsetsExtension.custom(
-                          horizontal: paddingHorizontal,
-                          vertical: paddingVertical,
-                          left: 0,
-                        ),
-                        child: suffixIcon,
-                      ),
-                      isDense: true,
-                      filled: true,
-                      fillColor: backgroundColor,
-                      enabledBorder: border,
-                      focusedBorder: borderFocused,
-                      constraints: BoxConstraints(
-                      ),
-                      contentPadding: EdgeInsetsExtension.custom(
+              valueListenable: obscured,
+              builder:(context, value, _) {
+                return TextField(
+                  minLines: minLines,
+                  maxLines: maxLines,
+                  textInputAction: textInputAction,
+                  obscureText: value,
+                  controller: editingController,
+                  clipBehavior: Clip.antiAlias,
+                  onTapOutside: (event) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  expands: false,
+                  style: textStyle,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    labelText: label,
+                    hintText: placeholder,
+                    errorStyle: errorStyle,
+                    labelStyle: labelStyle,
+                    hintStyle: hintStyle,
+                    alignLabelWithHint: true,
+                    prefixIconConstraints: BoxConstraints(),
+                    suffixIconConstraints: BoxConstraints(),
+                    prefixIcon: prefixIcon == null ? null : Padding(
+                      padding: EdgeInsetsExtension.custom(
                         horizontal: paddingHorizontal,
                         vertical: paddingVertical,
+                        right: 0,
                       ),
+                      child: prefixIcon,
                     ),
-                    onEditingComplete: () {
-                      FocusNode? nextField = focusNodeController.focusList.firstWhere((element) => element.unique == unique).next?.focusNode;
-                      print(nextField);
-                      if(nextField!= null){
-                        FocusScope.of(context).requestFocus(nextField);
-                      }else{
-                        FocusScope.of(context).unfocus();
-                      }
-                    },
-                  );
-                }
+                    suffixIcon: suffixIcon == null ? null : Padding(
+                      padding: EdgeInsetsExtension.custom(
+                        horizontal: paddingHorizontal,
+                        vertical: paddingVertical,
+                        left: 0,
+                      ),
+                      child: suffixIcon,
+                    ),
+                    isDense: true,
+                    filled: true,
+                    fillColor: backgroundColor,
+                    enabledBorder: border,
+                    focusedBorder: borderFocused,
+                    constraints: BoxConstraints(
+                    ),
+                    contentPadding: EdgeInsetsExtension.custom(
+                      horizontal: paddingHorizontal,
+                      vertical: paddingVertical,
+                    ),
+                  ),
+                  onEditingComplete: () {
+                    FocusNode? nextField = focusNodeController.focusList.firstWhere((element) => element.unique == unique).next?.focusNode;
+                    print(nextField);
+                    if(nextField!= null){
+                      FocusScope.of(context).requestFocus(nextField);
+                    }else{
+                      FocusScope.of(context).unfocus();
+                    }
+                  },
+                );
+              }
             ),
             ValueListenableBuilder(
               valueListenable: error,
@@ -465,7 +506,7 @@ class TextFieldWidget extends StatelessWidget {
             ),
             Container(
               height: 10,
-            )
+            ),
           ],
         ),
       ),
@@ -474,10 +515,13 @@ class TextFieldWidget extends StatelessWidget {
 
   void reset(){
     submitted.value = false;
+    obscured.value = true;
     obscured.value = false;
     error.value = "";
     editingController.text = "";
   }
+
+
 }
 class CustomFocus extends LinkedListEntry<CustomFocus>{
   final String unique;
@@ -495,5 +539,4 @@ class CustomFocus extends LinkedListEntry<CustomFocus>{
 class FocusNodeController{
   LinkedList<CustomFocus> focusList;
   FocusNodeController(): focusList = LinkedList();
-
 }

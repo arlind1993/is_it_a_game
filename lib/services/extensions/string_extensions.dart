@@ -15,3 +15,10 @@ extension StringCasingExtension on String {
       .join(' ');
   }
 }
+
+extension RegExTensions on RegExp{
+  static const String allAlphabetNumbers = "0-9a-zA-Z";
+  static const String emailSpecialChars = r"\!\#\$\%\&\'\*\/\=\?\^\`\{\|\}\(\)\[\]\<\>\,";
+  static const String emailNonConsecutive = r"\_\.\-";
+
+}

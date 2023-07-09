@@ -9,6 +9,7 @@ import 'package:game_template/provider/app_lifecycle.dart';
 import 'package:game_template/provider/settings_controller.dart';
 import 'package:game_template/screens/routes_controller.dart';
 import 'package:game_template/services/app_styles/app_color.dart';
+import 'package:game_template/services/extensions/string_extensions.dart';
 import 'package:game_template/services/get_it_helper.dart';
 import 'package:game_template/services/helpers/snack_bar.dart';
 import 'package:logging/logging.dart';
@@ -37,6 +38,7 @@ Future<void> main() async {
     guardedMain,
     crashlytics: crashlytics,
   );
+  print("^((?![${RegExTensions.emailNonConsecutive}][${RegExTensions.emailNonConsecutive}]).)*\$");
 }
 
 void guardedMain() {
@@ -91,7 +93,6 @@ class MyApp extends StatelessWidget {
             routeInformationProvider: getIt<RoutesController>().router.routeInformationProvider,
             routeInformationParser: getIt<RoutesController>().router.routeInformationParser,
             routerDelegate: getIt<RoutesController>().router.routerDelegate,
-
             scaffoldMessengerKey: getIt<CustomSnackBar>().scaffoldMessengerKey,
           );
         }),

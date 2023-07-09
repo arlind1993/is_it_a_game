@@ -14,6 +14,7 @@ class AccountUnauthenticated extends StatefulWidget {
 class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
   late FocusNodeController fnc;
   late List<TextFieldWidget> fields;
+  late VoidCallback submit;
   @override
   void initState() {
     fnc = FocusNodeController();
@@ -36,6 +37,16 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
         maxLines: 1,
       ),
     ];
+
+    submit = () {
+      fields.forEach((element) => element.submitted.value = true);
+      bool allValid = fields.every((element) => element.isValid());
+      if(allValid){
+
+      }else{
+
+      }
+    };
     super.initState();
   }
   @override
@@ -71,9 +82,7 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
             textSize: DefaultTextSizes.large.value,
             textWeight: DefaultTextWeight.bold.value,
           ),
-          action: () {
-            fields.forEach((element) => element.submitted.value = true);
-          },
+          action: submit,
         ),
         Container(
           width: 2,
@@ -84,4 +93,5 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
       ],
     );
   }
+
 }
