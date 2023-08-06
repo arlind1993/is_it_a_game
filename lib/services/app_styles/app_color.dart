@@ -9,6 +9,8 @@ class AppColor{
   Color get brownSecondary => const Color(0xff5c3434);
   Color get lightMain => const Color(0xffededed);
   Color get darkMain => const Color(0xff121212);
+  Color get lightSecondary => const Color(0xffcdcdcd);
+  Color get darkSecondary => const Color(0xff323232);
   Color get inkFullOpacity => const Color(0xff26262f);
   Color get ink => const Color(0xee26262f);
 }

@@ -52,7 +52,7 @@ class ChessFenAlgorithms{
     if(fenPieceInRanks.length == ChessConstants().CHESS_SIZE_SQUARE){
       int rank = 1;
       for(int i = 0 ; i < fenPieceInRanks.length; i++){
-        rank = 8-i;
+        rank = ChessConstants().CHESS_SIZE_SQUARE-i;
         int file = 1;
         for(int j = 0; j < fenPieceInRanks[i].length; j++) {
           assert(fenPieceInRanks[i][j].contains(RegExp("(r|b|n|k|q|p|R|B|N|K|Q|P|[0-8])")));

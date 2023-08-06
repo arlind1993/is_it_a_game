@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:game_template/screens/account/account_screen.dart';
+import 'package:game_template/screens/games/sudoku/screen/main_sudoku_screen.dart';
 import 'package:game_template/screens/scaffold_screen.dart';
-import 'package:game_template/screens/screens_controller.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/app_styles/app_color.dart';
@@ -10,10 +10,8 @@ import '../services/helpers/transition.dart';
 import 'account/settings_screen.dart';
 import 'games/game_selector_screen.dart';
 import 'games/chess/screen/main_chess_screen.dart';
-import 'games/chess/screen/main_chess_screen.dart';
 import 'games/murlan/murlan.dart';
 import 'games/poker/poker.dart';
-import 'games/sudoku/sudoku.dart';
 import 'games/wire/main_wire_screen.dart';
 import 'main_menu_screen.dart';
 

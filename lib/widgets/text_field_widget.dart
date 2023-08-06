@@ -39,7 +39,7 @@ enum TextFieldTypes{
       case TextFieldTypes.paragraph: return {};
       case TextFieldTypes.email: return {
         "^((?![${RegExTensions.emailNonConsecutive}][${RegExTensions.emailNonConsecutive}]).)*\$":"These characters shouldn't be inputted consecutively: ., -, and _!",
-        r"^([^\@\.\_\-].*[^\@\.\_\-])|[^\@\.\_\-]$":"These characters shouldn't be inputted in the beginning or the end: ., -, and _!",
+        r"^([^\@\.\_\-].*[^\@\.\_\-])|[^\@\.\_\-]?$":"These characters shouldn't be inputted in the beginning or the end: ., -, and _!",
         "^[${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}${RegExTensions.emailNonConsecutive}\\@]*\$": "Invalid Character/s",
         r"^[^@]*@?[^@]*$": "There shouldn't be two '@'!",
         r"(^(?=^[^@]*)[^@]*$)|(^.{0,64}@.*$)": "There shouldn't be more than 64 characters before '@'!",
@@ -327,6 +327,7 @@ class TextFieldWidget extends StatelessWidget {
       errorStyle,
     );
   }
+
   TextFieldWidget._(
     this.unique,
     this.focusNodeController,
@@ -412,7 +413,6 @@ class TextFieldWidget extends StatelessWidget {
     });
     return allMatches;
   }
-
 
   @override
   Widget build(BuildContext context) {

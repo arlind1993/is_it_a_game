@@ -2,8 +2,8 @@
 //
 // import 'package:game_template/services/extensions/iterable_extensions.dart';
 //
-// import 'chess_board_state.dart';
-// import 'chess_constants.dart';
+// import 'sudoku_board_state.dart';
+// import 'sudoku_constants.dart';
 // import 'chess_location.dart';
 import 'chess_movement.dart';
 import 'chess_piece.dart';

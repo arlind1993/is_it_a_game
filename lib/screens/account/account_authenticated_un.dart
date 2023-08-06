@@ -26,7 +26,6 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
         backgroundColor: Colors.transparent,
         textFieldTypes: TextFieldTypes.email,
         marginHorizontal: 15,
-        maxLines: 2,
       ),
       TextFieldWidget(
         focusNodeController: fnc,
@@ -71,11 +70,9 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
           focusNodeController: fnc,
           backgroundColor: Colors.white,
           elevation: 10,
-          iconColor: Colors.amber,
           minWidth: 200,
-          paddingSpacing: 10,
+          paddingSpacing: 5,
           borderRadius: 20,
-          prefixIcon: Icons.abc,
           textWidget: TextWidget(
             text: "Submit",
             textColor: Colors.green,
@@ -84,12 +81,6 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
           ),
           action: submit,
         ),
-        Container(
-          width: 2,
-          height: 10,
-          color: Colors.purple,
-
-        )
       ],
     );
   }
