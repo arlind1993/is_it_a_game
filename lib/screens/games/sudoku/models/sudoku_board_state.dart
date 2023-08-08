@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:game_template/screens/games/sudoku/models/sudoku_move.dart';
+import 'package:game_template/services/data_structures.dart';
 import 'package:game_template/services/extensions/iterable_extensions.dart';
 import 'package:logging/logging.dart';
 import 'sudoku_constants.dart';
@@ -17,7 +18,8 @@ enum SudokuGameState{
 }
 class SudokuBoardState{
   Logger _logger = Logger("SudokuBoardState");
-  List previousMoves;
+  StackDS<SudokuMove> previousMoves;
+  StackDS<SudokuMove> redoMoves;
   SudokuLocation? selectedLocation;
   List<SudokuCell> gameCells;
   SudokuGameState gameState;
@@ -25,33 +27,61 @@ class SudokuBoardState{
   String get actualImport => SudokuImportAlgorithms().exportBoard(this);
 
   SudokuBoardState({
-    required this.previousMoves,
+    List<SudokuMove> previousMoves = const [],
+    List<SudokuMove> redoMoves = const [],
     required this.gameCells,
     this.gameState = SudokuGameState.none,
-    this.selectedLocation
-  });
+    this.selectedLocation,
+  }): this.redoMoves = StackDS.of(redoMoves),
+    this.previousMoves = StackDS.of(previousMoves);
 
   SudokuBoardState.clone(SudokuBoardState sudokuBoardState):
-    previousMoves = List.from(sudokuBoardState.previousMoves),
+    redoMoves = StackDS.of(sudokuBoardState.redoMoves.elementsCopied),
+    previousMoves = StackDS.of(sudokuBoardState.previousMoves.elementsCopied),
     gameCells = List.from(sudokuBoardState.gameCells),
     gameState = sudokuBoardState.gameState,
     selectedLocation = sudokuBoardState.selectedLocation == null ? null : SudokuLocation.clone(sudokuBoardState.selectedLocation!);
 
-  SudokuBoardState getNewBoardFromMove(SudokuMove move){
+  bool makeMove(SudokuMove move){
     print(move);
-    if(!move.changeMade) return this;
-    SudokuBoardState newSudokuBoard = SudokuBoardState.clone(this);
-    SudokuCell? from = newSudokuBoard.gameCells.firstWhere((element) {
+    if(!move.changeMade) return false;
+    SudokuCell? from = gameCells.firstWhereIfThere((element) {
       return element == move.from;
     });
+    // print("From: $from");
+    if(from == null) return false;
+    gameCells[(from.sudokuLocation.row-1)*SudokuConstants().SUDOKU_SIZE_SQUARE + from.sudokuLocation.col - 1] = SudokuCell.clone(move.to);
+    redoMoves.clear();
+    previousMoves.push(move);
+    return true;
+  }
+
+  bool undo(){
+    if(previousMoves.isEmpty) return false;
+    SudokuCell? from = gameCells.firstWhereIfThere((element) {
+      return element == previousMoves.peek.to;
+    });
     print("From: $from");
-    if(from == null) return this;
-    newSudokuBoard.gameCells[(from.sudokuLocation.row-1)*SudokuConstants().SUDOKU_SIZE_SQUARE + from.sudokuLocation.col - 1] = SudokuCell.clone(move.to);
-    print(newSudokuBoard.gameCells[(from.sudokuLocation.row-1)*SudokuConstants().SUDOKU_SIZE_SQUARE + from.sudokuLocation.col - 1]);
-    print(from);
-    _logger.warning(this.toGridVisual());
-    _logger.info(newSudokuBoard.toGridVisual());
-    return newSudokuBoard;
+    if(from == null) return false;
+    selectedLocation = SudokuLocation.clone(from.sudokuLocation);
+    gameCells[(from.sudokuLocation.row-1)*SudokuConstants().SUDOKU_SIZE_SQUARE + from.sudokuLocation.col - 1] = SudokuCell.clone(previousMoves.peek.from);
+    redoMoves.push(previousMoves.peek);
+    previousMoves.pop();
+    return true;
+  }
+
+  bool redo(){
+    if(redoMoves.isEmpty) return false;
+    SudokuCell? from = gameCells.firstWhereIfThere((element) {
+      return element == redoMoves.peek.from;
+    });
+    print("From: $from");
+    if(from == null) return false;
+    selectedLocation = SudokuLocation.clone(from.sudokuLocation);
+    gameCells[(from.sudokuLocation.row-1)*SudokuConstants().SUDOKU_SIZE_SQUARE + from.sudokuLocation.col - 1] = SudokuCell.clone(redoMoves.peek.to);
+    previousMoves.push(redoMoves.peek);
+    redoMoves.pop();
+    return true;
   }
 
   @override
@@ -70,29 +100,33 @@ class SudokuBoardState{
       stringBuffer.writeln("-"*(SudokuConstants().SUDOKU_SIZE_SQUARE * 4 + 1));
       for(int j = 0; j < SudokuConstants().SUDOKU_SIZE_SQUARE; j++){
         stringBuffer.write("|");
-        stringBuffer.write(" ${gameCells[i * SudokuConstants().SUDOKU_SIZE_SQUARE + j].value ?? " "} ");
+        if(selectedLocation?.row == i + 1 && selectedLocation?.col == j + 1){
+          stringBuffer.write("+${gameCells[i * SudokuConstants().SUDOKU_SIZE_SQUARE + j].value ?? " "}+");
+        }else{
+          stringBuffer.write(" ${gameCells[i * SudokuConstants().SUDOKU_SIZE_SQUARE + j].value ?? " "} ");
+        }
         if(j == SudokuConstants().SUDOKU_SIZE_SQUARE-1){
           stringBuffer.writeln("|");
         }
       }
-
     }
-    stringBuffer.writeln("-"*(SudokuConstants().SUDOKU_SIZE_SQUARE * 4 + 1));
+    stringBuffer.write("-"*(SudokuConstants().SUDOKU_SIZE_SQUARE * 4 + 1));
     return stringBuffer.toString();
   }
 
   @override
   bool operator ==(Object other) {
     return other is SudokuBoardState
-      && listEquals(previousMoves, other.previousMoves)
+      && listEquals(previousMoves.elementsCopied, other.previousMoves.elementsCopied)
+      && listEquals(redoMoves.elementsCopied, other.redoMoves.elementsCopied)
       && listEquals(gameCells, other.gameCells)
       && this.gameState == other.gameState;
   }
 
   @override
-  // TODO: implement hashCode
   int get hashCode => Object.hash(
-    Object.hashAll(previousMoves),
+    previousMoves,
+    redoMoves,
     Object.hashAll(gameCells),
     gameState,
   );

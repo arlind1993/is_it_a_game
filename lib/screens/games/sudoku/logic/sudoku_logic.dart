@@ -24,18 +24,19 @@ class SudokuImportAlgorithms{
         int col = (i % SudokuConstants().SUDOKU_SIZE_SQUARE) + 1;
         // assert(importString[i].contains(RegExp("(.|[0-9])")));
         int? value;
+        SudokuCellType cellType = SudokuCellType.mutable;
         switch(importString[i]){
-          case "1" : value = 1; break;
-          case "2" : value = 2; break;
-          case "3" : value = 3; break;
-          case "4" : value = 4; break;
-          case "5" : value = 5; break;
-          case "6" : value = 6; break;
-          case "7" : value = 7; break;
-          case "8" : value = 8; break;
-          case "9" : value = 9; break;
+          case "1" : value = 1; cellType = SudokuCellType.initial; break;
+          case "2" : value = 2; cellType = SudokuCellType.initial; break;
+          case "3" : value = 3; cellType = SudokuCellType.initial; break;
+          case "4" : value = 4; cellType = SudokuCellType.initial; break;
+          case "5" : value = 5; cellType = SudokuCellType.initial; break;
+          case "6" : value = 6; cellType = SudokuCellType.initial; break;
+          case "7" : value = 7; cellType = SudokuCellType.initial; break;
+          case "8" : value = 8; cellType = SudokuCellType.initial; break;
+          case "9" : value = 9; cellType = SudokuCellType.initial; break;
         }
-        pieces.add(SudokuCell(sudokuLocation: SudokuLocation(row: row, col: col), value: value, type: SudokuCellType.initial));
+        pieces.add(SudokuCell(sudokuLocation: SudokuLocation(row: row, col: col), value: value, type: cellType));
       }
       return SudokuBoardState(previousMoves: [], gameCells: pieces);
     }else{

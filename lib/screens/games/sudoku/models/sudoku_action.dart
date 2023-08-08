@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 enum ActionTypes{
   number,
   bigType,
-  extraType,
   mustType,
+  extraType,
   saveControl,
   undoControl,
   redoControl,

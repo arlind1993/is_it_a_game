@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:game_template/screens/games/sudoku/models/sudoku_location.dart';
 import 'package:game_template/widgets/text_widget.dart';
 import 'package:logging/logging.dart';
@@ -35,12 +37,18 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
 
   Logger _logger = Logger("Sudoku board builder");
   late ValueNotifier<SudokuBoardState> actualSudokuBoard;
+  Map<String, SudokuControllerGroup> sudokuActionGroups = {
+    "numberGroup": SudokuControllerGroup(),
+    "noteTypeGroup": SudokuControllerGroup(),
+    "controllerGroup": SudokuControllerGroup(),
+    "multipleControlGroup": SudokuControllerGroup(),
+  };
   @override
   void initState() {
     actualSudokuBoard = ValueNotifier(widget.sudokuState);
 
     actualSudokuBoard.addListener(() {
-      _logger.info("\n"+actualSudokuBoard.value.toGridVisual());
+      _logger.info(actualSudokuBoard.value.toGridVisual());
       widget.sudokuState = actualSudokuBoard.value;
     });
 
@@ -55,13 +63,13 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
 
   @override
   Widget build(BuildContext context) {
+    double sch = MediaQuery.of(context).size.height;
     return Container(
       child: LayoutBuilder(
         builder: (context, constraint) {
           print(constraint.maxHeight);
-          double screenSize = constraint.maxWidth;
+          double screenSize = min(constraint.maxWidth, sch / 2);
           return SizedBox(
-            width: screenSize,
             child: Stack(
               children: [
                 Positioned(
@@ -113,8 +121,43 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                                       if(cell.value != null){
                                         return Center(
                                           child: TextWidget(
-                                            text: cell.value.toString()
+                                            text: cell.value.toString(),
+                                            textSize: 22,
                                           )
+                                        );
+                                      }
+                                      print(cell.listMust);
+                                      print(cell.listExtra);
+                                      if(cell.must!=0){
+                                        return Center(
+                                          child: TextWidget(
+                                            text: cell.listMust.join(""),
+                                            lineHeight: 1,
+                                            textSize: 12,
+                                          )
+                                        );
+                                      }
+                                      if(cell.extra!=0){
+                                        int sq = sqrt(SudokuConstants().SUDOKU_SIZE_SQUARE).ceil();
+                                        return Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                          children: List.generate(sq, (row) => Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                            children: List.generate(sq, (col) {
+                                              if(cell.listExtra.contains(row*sq+col+1)){
+                                                return TextWidget(
+                                                  text:"${row*sq+col+1}",
+                                                  lineHeight: 1,
+                                                  textSize: 10,
+                                                );
+                                              }
+                                              return TextWidget(
+                                                text:" ",
+                                                lineHeight: 1,
+                                                textSize: 10,
+                                              );
+                                            }),
+                                          ))
                                         );
                                       }
                                       return Container();
@@ -133,15 +176,17 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: Container(
-                    width: screenSize,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(2, (index) => Container(
-                        width: 4,
-                        height: screenSize,
-                        color: getIt<AppColor>().darkSecondary,
-                      )),
+                  child: Center(
+                    child: Container(
+                      width: screenSize,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(2, (index) => Container(
+                          width: 4,
+                          height: screenSize,
+                          color: getIt<AppColor>().darkSecondary,
+                        )),
+                      ),
                     ),
                   ),
                 ),
@@ -149,15 +194,17 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: Container(
-                    height: screenSize,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(2, (index) => Container(
-                        width: screenSize,
-                        height: 4,
-                        color: getIt<AppColor>().darkSecondary,
-                      )),
+                  child: Center(
+                    child: Container(
+                      height: screenSize,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(2, (index) => Container(
+                          width: screenSize,
+                          height: 4,
+                          color: getIt<AppColor>().darkSecondary,
+                        )),
+                      ),
                     ),
                   ),
                 ),
@@ -168,7 +215,11 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                   right: 0,
                   child: Container(
                     child: SudokuController(
-                      actualBoard: actualSudokuBoard
+                      actualBoard: actualSudokuBoard,
+                      numberGroup: sudokuActionGroups["numberGroup"]!,
+                      noteTypeGroup: sudokuActionGroups["noteTypeGroup"]!,
+                      controllerGroup: sudokuActionGroups["controllerGroup"]!,
+                      multipleControlGroup: sudokuActionGroups["multipleControlGroup"]!,
                     ),
                   ),
                 )

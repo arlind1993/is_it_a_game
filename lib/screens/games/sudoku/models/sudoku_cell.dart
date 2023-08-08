@@ -43,6 +43,7 @@ class SudokuCell{
 
   addOrRemoveExtra(List<int> newInputs) => extra ^= encode(newInputs, SudokuConstants().SUDOKU_SIZE_SQUARE);
   addOrRemoveMust(List<int> newInputs) => must ^= encode(newInputs, SudokuConstants().SUDOKU_SIZE_SQUARE);
+  addOrRemoveValue(int newInput) => value = value == newInput ? null : newInput;
 
   SudokuCell({
     required this.sudokuLocation,
@@ -73,4 +74,5 @@ class SudokuCell{
 
   @override
   int get hashCode => Object.hash(sudokuLocation, value, extra, type);
+
 }
