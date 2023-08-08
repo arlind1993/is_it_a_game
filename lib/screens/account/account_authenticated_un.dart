@@ -18,6 +18,7 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
   late FocusNodeController fnc;
   late List<TextFieldWidget> fields;
   late VoidCallback submit;
+
   @override
   void initState() {
     fnc = FocusNodeController();
