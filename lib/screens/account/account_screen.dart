@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:game_template/screens/account/account_authenticated.dart';
+import 'package:game_template/services/get_it_helper.dart';
 
+import '../../services/firebase/firebase_auth.dart';
 import 'account_authenticated_un.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -8,9 +10,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("lol");
     return LayoutBuilder(
       builder: (context, constraint) {
-        if(1==0){
+        if(getIt<FirebaseAuthUser>().currentUser!=null){
           return AccountAuthenticated();
         }else{
           return AccountUnauthenticated();

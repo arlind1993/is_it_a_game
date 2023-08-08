@@ -146,14 +146,16 @@ class RoutesController{
             ),
             GoRoute(
               path: 'profile',
+
               pageBuilder: (context, state) {
+                print("reload");
                 return NoTransitionPage(
+                  key: UniqueKey(),
                   child: ScaffoldScreen(
                     pathOnBackAction: '/',
                     obstructViewBottomBar: true,
                     visibleBottomBar: true,
                     child: ProfileScreen(
-                      key: const Key('profile')
                     )
                   ),
                 );
