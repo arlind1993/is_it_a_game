@@ -1,13 +1,15 @@
-import 'package:flutter_svg/flutter_svg.dart';
-
+import 'dart:math';
 class SudokuConstants{
   static SudokuConstants _chessConstants = SudokuConstants._();
   factory SudokuConstants(){
     return _chessConstants;
   }
-  SudokuConstants._();
+  SudokuConstants._() {
+    SUDOKU_SIZE_SQUARE = 9;
+    SUDOKU_SIZE_SQUARE_GROUP = sqrt(SUDOKU_SIZE_SQUARE).ceil();
+  }
 
-  final int SUDOKU_SIZE_SQUARE = 9;
-
+  late final int SUDOKU_SIZE_SQUARE;
+  late final int SUDOKU_SIZE_SQUARE_GROUP;
 }
 

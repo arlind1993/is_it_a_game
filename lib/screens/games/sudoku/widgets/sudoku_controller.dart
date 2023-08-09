@@ -23,7 +23,7 @@ class SudokuControllerGroup{
   SudokuControllerGroup();
 
   void setActions({
-    required actionsGrouped,
+    required List<SudokuAction> actionsGrouped,
     SudokuAction? actionSelectedValue,
   }){
     this.actionsGrouped = actionsGrouped;
@@ -40,6 +40,7 @@ class SudokuController extends StatefulWidget {
   late SudokuControllerGroup noteTypeGroup;
   late SudokuControllerGroup controllerGroup;
   late SudokuControllerGroup multipleControlGroup;
+  late SudokuControllerGroup bigEditGroup;
   ValueNotifier<SudokuBoardState> actualBoard;
 
   SudokuController({
@@ -49,8 +50,12 @@ class SudokuController extends StatefulWidget {
     required this.noteTypeGroup,
     required this.controllerGroup,
     required this.multipleControlGroup,
+    required this.bigEditGroup
   }) {
     actions = [
+      SudokuAction(row: 1, col: 0, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.multiple_stop), TextWidget(text: "Multi", )]), actionType: ActionTypes.multipleControl),
+      SudokuAction(row: 2, col: 0, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.edit), TextWidget(text: "Fill", )]), actionType: ActionTypes.fillControl),
+      SudokuAction(row: 3, col: 0, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.restore_from_trash), TextWidget(text: "Empty", )]), actionType: ActionTypes.eraseControl),
       SudokuAction(row: 1, col: 1, display: TextWidget(text: '1', textSize: 22), actionType: ActionTypes.number, value: 1),
       SudokuAction(row: 1, col: 2, display: TextWidget(text: '2', textSize: 22), actionType: ActionTypes.number, value: 2),
       SudokuAction(row: 1, col: 3, display: TextWidget(text: '3', textSize: 22), actionType: ActionTypes.number, value: 3),
@@ -107,16 +112,14 @@ class SudokuController extends StatefulWidget {
       SudokuAction(row: 0, col: 1, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.save), TextWidget(text: "Save", )]), actionType: ActionTypes.saveControl),
       SudokuAction(row: 0, col: 2, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.undo), TextWidget(text: "Undo", )]), actionType: ActionTypes.undoControl),
       SudokuAction(row: 0, col: 3, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.redo), TextWidget(text: "Redo", )]), actionType: ActionTypes.redoControl),
-      SudokuAction(row: 0, col: 4, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.restore_from_trash), TextWidget(text: "Empty", )]), actionType: ActionTypes.eraseControl),
-      SudokuAction(row: 0, col: 5, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.edit), TextWidget(text: "Fill", )]), actionType: ActionTypes.fillControl),
-      SudokuAction(row: 0, col: 6, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.lightbulb), TextWidget(text: "Hint", )]), actionType: ActionTypes.hintControl),
-      SudokuAction(row: 0, col: 7, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.multiple_stop), TextWidget(text: "Multi", )]), actionType: ActionTypes.multipleControl),
+      SudokuAction(row: 0, col: 4, display: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.lightbulb), TextWidget(text: "Hint", )]), actionType: ActionTypes.hintControl),
     ];
 
-    numberGroup.setActions(actionsGrouped: actions.sublist(0, 9));
-    noteTypeGroup.setActions(actionsGrouped: actions.sublist(9, 12), actionSelectedValue: actions[9]);
-    controllerGroup.setActions(actionsGrouped:actions.sublist(12,actions.length -1));
-    multipleControlGroup.setActions(actionsGrouped: [actions.last]);
+    numberGroup.setActions(actionsGrouped: actions.where((element) => element.actionType == ActionTypes.number).toList());
+    noteTypeGroup.setActions(actionsGrouped: actions.where((element) => element.actionType == ActionTypes.bigType || element.actionType == ActionTypes.mustType || element.actionType == ActionTypes.extraType).toList(), actionSelectedValue: actions.firstWhere((element) => element.actionType == ActionTypes.bigType));
+    controllerGroup.setActions(actionsGrouped:actions.where((element) => element.actionType == ActionTypes.saveControl || element.actionType == ActionTypes.undoControl || element.actionType == ActionTypes.redoControl || element.actionType == ActionTypes.hintControl).toList());
+    bigEditGroup.setActions(actionsGrouped:actions.where((element) => element.actionType == ActionTypes.fillControl || element.actionType == ActionTypes.eraseControl).toList());
+    multipleControlGroup.setActions(actionsGrouped: actions.where((element) => element.actionType == ActionTypes.multipleControl).toList());
   }
 
   @override
@@ -124,7 +127,7 @@ class SudokuController extends StatefulWidget {
 }
 
 class _SudokuControllerState extends State<SudokuController> {
-  _action(SudokuAction element){
+  _action(SudokuAction element, {bool held = false}){
     SudokuLocation? loc = widget.actualBoard.value.selectedLocation;
       print(loc);
       SudokuCell? cell;
@@ -133,8 +136,10 @@ class _SudokuControllerState extends State<SudokuController> {
       }
       switch(element.actionType){
         case ActionTypes.number:
+          print("number");
+          widget.numberGroup.actionSelected.value = element;
           if(cell != null && cell.type == SudokuCellType.mutable){
-            widget.numberGroup.actionSelected.value = element;
+            print("number");
             switch(widget.noteTypeGroup.actionSelected.value?.actionType){
               case ActionTypes.bigType:
                 SudokuMove move = SudokuMove(from: cell, to: SudokuCell.clone(cell)..addOrRemoveValue(element.value!));
@@ -167,34 +172,20 @@ class _SudokuControllerState extends State<SudokuController> {
         case ActionTypes.extraType:
           widget.noteTypeGroup.actionSelected.value = element;
           break;
-        case ActionTypes.saveControl:
-          //TODO: ADD SAVE
-          widget.controllerGroup.actionSelected.value = element;
-          break;
-        case ActionTypes.undoControl:
-          widget.controllerGroup.actionSelected.value = element;
-          bool change = widget.actualBoard.value.undo();
-          if(change) widget.actualBoard.notifyListeners();
-          break;
-        case ActionTypes.redoControl:
-          widget.controllerGroup.actionSelected.value = element;
-          bool change = widget.actualBoard.value.redo();
-          if(change) widget.actualBoard.notifyListeners();
-          break;
-        case ActionTypes.eraseControl:
-          widget.controllerGroup.actionSelected.value = element;
-          if(cell != null && cell.type == SudokuCellType.mutable){
-            SudokuMove move = SudokuMove(from: cell, to: SudokuCell.clone(cell)..value=null..must=0..extra=0);
-            bool change = widget.actualBoard.value.makeMove(move);
-            if(change) widget.actualBoard.notifyListeners();
+        case ActionTypes.multipleControl:
+          if(widget.multipleControlGroup.actionSelected.value == null){
+            widget.multipleControlGroup.actionSelected.value = element;
+          }else{
+            widget.multipleControlGroup.actionSelected.value = null;
           }
           break;
-        case ActionTypes.hintControl:
-          //TODO: ADD HINT
-          widget.controllerGroup.actionSelected.value = element;
-          break;
         case ActionTypes.fillControl:
-          widget.controllerGroup.actionSelected.value = element;
+          if(widget.bigEditGroup.actionSelected.value == element){
+            widget.bigEditGroup.actionSelected.value = null;
+          }else{
+            widget.bigEditGroup.actionSelected.value = element;
+          }
+          if(held || widget.bigEditGroup.actionSelected.value == null) break;
           if(cell != null && cell.type == SudokuCellType.mutable){
             if(cell.value != null) break;
             late SudokuMove move;
@@ -211,12 +202,36 @@ class _SudokuControllerState extends State<SudokuController> {
             if(change) widget.actualBoard.notifyListeners();
           }
           break;
-        case ActionTypes.multipleControl:
-          if(widget.multipleControlGroup.actionSelected.value == null){
-            widget.multipleControlGroup.actionSelected.value = element;
+        case ActionTypes.eraseControl:
+          if(widget.bigEditGroup.actionSelected.value == element){
+            widget.bigEditGroup.actionSelected.value = null;
           }else{
-            widget.multipleControlGroup.actionSelected.value = null;
-          }//TODO ADD  MULTIPLE SELECT ON CLICK CELL NOT HERE
+            widget.bigEditGroup.actionSelected.value = element;
+          }
+          if(held || widget.bigEditGroup.actionSelected.value == null) break;
+          if(cell != null && cell.type == SudokuCellType.mutable){
+            SudokuMove move = SudokuMove(from: cell, to: SudokuCell.clone(cell)..value=null..must=0..extra=0);
+            bool change = widget.actualBoard.value.makeMove(move);
+            if(change) widget.actualBoard.notifyListeners();
+          }
+          break;
+        case ActionTypes.saveControl:
+          //TODO: ADD SAVE
+          widget.controllerGroup.actionSelected.value = element;
+          break;
+        case ActionTypes.undoControl:
+          widget.controllerGroup.actionSelected.value = element;
+          bool change = widget.actualBoard.value.undo();
+          if(change) widget.actualBoard.notifyListeners();
+          break;
+        case ActionTypes.redoControl:
+          widget.controllerGroup.actionSelected.value = element;
+          bool change = widget.actualBoard.value.redo();
+          if(change) widget.actualBoard.notifyListeners();
+          break;
+        case ActionTypes.hintControl:
+          //TODO: ADD HINT
+          widget.controllerGroup.actionSelected.value = element;
           break;
       }
     setState(() {});
@@ -256,8 +271,8 @@ class _SudokuControllerState extends State<SudokuController> {
                 children: List.generate(SudokuAction.SUDOKUACTIONROWS, (row){
                   return Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: List.generate(SudokuAction.SUDOKUACTIONCOLS, (col) {
-                      SudokuAction? e = widget.actions.firstWhereIfThere((element) => element.row == row + 1 && element.col == col + 1);
+                    children: List.generate(SudokuAction.SUDOKUACTIONCOLS +1 , (col) {
+                      SudokuAction? e = widget.actions.firstWhereIfThere((element) => element.row == row + 1 && element.col == col);
                       if(e == null){
                         return Container(
                           width: 50,
@@ -266,13 +281,17 @@ class _SudokuControllerState extends State<SudokuController> {
                       }
                       return InkWell(
                         onTap: ()=> _action(e),
+                        onLongPress: () => _action(e, held: true),
                         child: Container(
                           width: 50,
                           height: 50,
                           margin: EdgeInsets.all(2.5),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: e == widget.numberGroup.actionSelected.value || e == widget.noteTypeGroup.actionSelected.value
+                            color: e == widget.numberGroup.actionSelected.value
+                                || e == widget.noteTypeGroup.actionSelected.value
+                                || e == widget.bigEditGroup.actionSelected.value
+                                || e == widget.multipleControlGroup.actionSelected.value
                               ? getIt<AppColor>().greenMain : getIt<AppColor>().lightSecondary,
                           ),
                           child: Center(child: e.display)

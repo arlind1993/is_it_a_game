@@ -5,13 +5,13 @@ enum ActionTypes{
   bigType,
   mustType,
   extraType,
+  multipleControl,
+  fillControl,
+  eraseControl,
   saveControl,
   undoControl,
   redoControl,
-  eraseControl,
-  fillControl,
   hintControl,
-  multipleControl,
 }
 
 class SudokuAction {

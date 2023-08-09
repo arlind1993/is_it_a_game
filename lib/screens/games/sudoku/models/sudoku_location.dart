@@ -4,6 +4,9 @@ class SudokuLocation{
   int row;
   int col;
 
+  int get grid => (row - 1) ~/ SudokuConstants().SUDOKU_SIZE_SQUARE_GROUP
+      * SudokuConstants().SUDOKU_SIZE_SQUARE_GROUP +
+      (col - 1) ~/ SudokuConstants().SUDOKU_SIZE_SQUARE_GROUP + 1;
   bool get inside => (row >= 1 && row <= SudokuConstants().SUDOKU_SIZE_SQUARE) && (col >= 1 && col <= SudokuConstants().SUDOKU_SIZE_SQUARE);
   String get nameConvention => String.fromCharCode(96 + col) + String.fromCharCode(48 + row);
   SudokuLocation({

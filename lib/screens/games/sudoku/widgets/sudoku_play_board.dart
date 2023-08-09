@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:game_template/screens/games/sudoku/models/sudoku_action.dart';
 import 'package:game_template/screens/games/sudoku/models/sudoku_location.dart';
 import 'package:game_template/widgets/text_widget.dart';
 import 'package:logging/logging.dart';
@@ -10,6 +11,7 @@ import '../logic/sudoku_logic.dart';
 import '../models/sudoku_board_state.dart';
 import '../models/sudoku_constants.dart';
 import '../models/sudoku_cell.dart';
+import '../models/sudoku_move.dart';
 import 'sudoku_controller.dart';
 
 
@@ -42,6 +44,7 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
     "noteTypeGroup": SudokuControllerGroup(),
     "controllerGroup": SudokuControllerGroup(),
     "multipleControlGroup": SudokuControllerGroup(),
+    "bigEditGroup": SudokuControllerGroup(),
   };
   @override
   void initState() {
@@ -59,6 +62,70 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
   void dispose() {
     actualSudokuBoard.dispose();
     super.dispose();
+  }
+
+
+  void _action(int row,int col, {bool held = false}) {
+    SudokuCell actualCell = actualSudokuBoard.value.gameCells[row*SudokuConstants().SUDOKU_SIZE_SQUARE+col];
+    if(actualCell.type != SudokuCellType.filled){
+      print(held);
+      if(actualSudokuBoard.value.selectedLocation == actualCell.sudokuLocation && held){
+        actualSudokuBoard.value.selectedLocation = null;
+      }else{
+        actualSudokuBoard.value.selectedLocation = actualCell.sudokuLocation;
+      }
+      print("hi -> ${actualSudokuBoard.value.selectedLocation}");
+      if(actualCell.type == SudokuCellType.mutable && actualSudokuBoard.value.selectedLocation != null && sudokuActionGroups["multipleControlGroup"]!.actionSelected.value != null){
+        if(sudokuActionGroups["bigEditGroup"]!.actionSelected.value?.actionType == ActionTypes.eraseControl){
+          SudokuMove move = SudokuMove(from: actualCell, to: SudokuCell.clone(actualCell)..value=null..must=0..extra=0);
+          bool change = actualSudokuBoard.value.makeMove(move);
+          if(change) actualSudokuBoard.notifyListeners();
+        }else if(sudokuActionGroups["bigEditGroup"]!.actionSelected.value?.actionType == ActionTypes.fillControl){
+          if(actualCell.value == null) {
+            late SudokuMove move;
+            if(actualCell.must != 0 || sudokuActionGroups["noteTypeGroup"]!.actionSelected.value?.actionType == ActionTypes.mustType){
+              move = SudokuMove(from: actualCell, to: SudokuCell.clone(actualCell)..must=0..addOrRemoveExtra(
+                List<int>.generate(SudokuConstants().SUDOKU_SIZE_SQUARE, (index) => index+1)
+              ));
+            }else{
+              move = SudokuMove(from: actualCell, to: SudokuCell.clone(actualCell)..extra=0..addOrRemoveExtra(
+                List<int>.generate(SudokuConstants().SUDOKU_SIZE_SQUARE, (index) => index+1)
+              ));
+            }
+            bool change = actualSudokuBoard.value.makeMove(move);
+            if(change) actualSudokuBoard.notifyListeners();
+          }
+        }else{
+          int? value = sudokuActionGroups["numberGroup"]!.actionSelected.value?.value;
+          if(value != null){
+            switch(sudokuActionGroups["noteTypeGroup"]!.actionSelected.value?.actionType){
+              case ActionTypes.bigType:
+                SudokuMove move = SudokuMove(from: actualCell, to: SudokuCell.clone(actualCell)..addOrRemoveValue(value));
+                bool change = actualSudokuBoard.value.makeMove(move);
+                if(change) actualSudokuBoard.notifyListeners();
+                break;
+              case ActionTypes.mustType:
+                if(actualCell.value != null) break;
+                SudokuMove move = SudokuMove(from: actualCell, to: SudokuCell.clone(actualCell)..addOrRemoveMust([value]));
+                bool change = actualSudokuBoard.value.makeMove(move);
+                if(change) actualSudokuBoard.notifyListeners();
+                break;
+              case ActionTypes.extraType:
+                if(actualCell.value != null || actualCell.must != 0) break;
+                SudokuMove move = SudokuMove(from: actualCell, to: SudokuCell.clone(actualCell)..addOrRemoveExtra([value]));
+                bool change = actualSudokuBoard.value.makeMove(move);
+                if(change) actualSudokuBoard.notifyListeners();
+                break;
+              default:
+                assert(false);
+            }
+          }
+        }
+        print("hi");
+
+      }
+      actualSudokuBoard.notifyListeners();
+    }
   }
 
   @override
@@ -84,22 +151,10 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                         children: List.generate(SudokuConstants().SUDOKU_SIZE_SQUARE, (col){
                           return GestureDetector(
                             onTap: () {
-                              SudokuCell actualCell = actualSudokuBoard.value.gameCells[row*SudokuConstants().SUDOKU_SIZE_SQUARE+col];
-                              if(actualCell.type != SudokuCellType.filled){
-                                actualSudokuBoard.value.selectedLocation = actualCell.sudokuLocation;
-                                actualSudokuBoard.notifyListeners();
-                              }
+                              _action(row, col);
                             },
                             onLongPress: () {
-                              SudokuCell actualCell = actualSudokuBoard.value.gameCells[row*SudokuConstants().SUDOKU_SIZE_SQUARE+col];
-                              if(actualCell.type != SudokuCellType.filled){
-                                if(actualSudokuBoard.value.selectedLocation == actualCell.sudokuLocation){
-                                  actualSudokuBoard.value.selectedLocation = null;
-                                }else{
-                                  actualSudokuBoard.value.selectedLocation = actualCell.sudokuLocation;
-                                }
-                                actualSudokuBoard.notifyListeners();
-                              }
+                              _action(row, col, held: true);
                             },
                             child: ValueListenableBuilder(
                               valueListenable: actualSudokuBoard,
@@ -118,11 +173,13 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                                   child: Builder(
                                     builder: (context) {
                                       SudokuCell cell = actualSudokuBoard.value.gameCells[row*SudokuConstants().SUDOKU_SIZE_SQUARE+col];
+                                      SudokuCell errorsInCell = actualSudokuBoard.value.onlyErrorsInCells[row*SudokuConstants().SUDOKU_SIZE_SQUARE+col];
                                       if(cell.value != null){
                                         return Center(
                                           child: TextWidget(
                                             text: cell.value.toString(),
                                             textSize: 22,
+                                            textColor: errorsInCell.value !=null ? Colors.red : null,
                                           )
                                         );
                                       }
@@ -130,34 +187,46 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                                       print(cell.listExtra);
                                       if(cell.must!=0){
                                         return Center(
-                                          child: TextWidget(
-                                            text: cell.listMust.join(""),
-                                            lineHeight: 1,
-                                            textSize: 12,
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            crossAxisAlignment: WrapCrossAlignment.center,
+                                            children: cell.listMust.map((e) {
+                                              return TextWidget(
+                                                text: e.toString(),
+                                                lineHeight: 1,
+                                                textSize: 12,
+                                                textColor: errorsInCell.listMust.contains(e) ? Colors.red : null,
+                                              );
+                                            }).toList()
                                           )
                                         );
                                       }
                                       if(cell.extra!=0){
-                                        int sq = sqrt(SudokuConstants().SUDOKU_SIZE_SQUARE).ceil();
-                                        return Column(
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          children: List.generate(sq, (row) => Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                            children: List.generate(sq, (col) {
-                                              if(cell.listExtra.contains(row*sq+col+1)){
+                                        int sq = SudokuConstants().SUDOKU_SIZE_SQUARE_GROUP;
+                                        return Container(
+                                          padding: EdgeInsets.all(2),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: List.generate(sq, (row) => Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: List.generate(sq, (col) {
+                                                int e = row*sq+col+1;
+                                                if(cell.listExtra.contains(e)){
+                                                  return TextWidget(
+                                                    text:"${row*sq+col+1}",
+                                                    lineHeight: 1,
+                                                    textSize: 10,
+                                                    textColor: errorsInCell.listExtra.contains(e) ? Colors.red : null,
+                                                  );
+                                                }
                                                 return TextWidget(
-                                                  text:"${row*sq+col+1}",
+                                                  text:" ",
                                                   lineHeight: 1,
                                                   textSize: 10,
                                                 );
-                                              }
-                                              return TextWidget(
-                                                text:" ",
-                                                lineHeight: 1,
-                                                textSize: 10,
-                                              );
-                                            }),
-                                          ))
+                                              }),
+                                            ))
+                                          ),
                                         );
                                       }
                                       return Container();
@@ -220,6 +289,7 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
                       noteTypeGroup: sudokuActionGroups["noteTypeGroup"]!,
                       controllerGroup: sudokuActionGroups["controllerGroup"]!,
                       multipleControlGroup: sudokuActionGroups["multipleControlGroup"]!,
+                      bigEditGroup: sudokuActionGroups["bigEditGroup"]!,
                     ),
                   ),
                 )
@@ -230,4 +300,5 @@ class _SudokuPlayBoardState extends State<SudokuPlayBoard> {
       ),
     );
   }
+
 }

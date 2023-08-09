@@ -24,6 +24,34 @@ class SudokuBoardState{
   List<SudokuCell> gameCells;
   SudokuGameState gameState;
 
+  List<SudokuCell> get onlyErrorsInCells{
+    List<SudokuCell> result = [];
+    for(SudokuCell cell in gameCells){
+      SudokuCell sudoku = SudokuCell(sudokuLocation: SudokuLocation.clone(cell.sudokuLocation), value: null, type: cell.type,);
+      if(cell.type == SudokuCellType.mutable){
+        for(SudokuCell cellOther in gameCells){
+          if(cell == cellOther) continue;
+          if(cellOther.value == null) continue;
+          if(cell.sudokuLocation.row == cellOther.sudokuLocation.row
+              || cell.sudokuLocation.col == cellOther.sudokuLocation.col
+              || cell.sudokuLocation.grid == cellOther.sudokuLocation.grid){
+            if(sudoku.value == null && cell.value == cellOther.value){
+              sudoku.value = cellOther.value;
+            }
+            if(!sudoku.listMust.contains(cellOther.value) && cell.listMust.contains(cellOther.value!)){
+              sudoku.addOrRemoveMust([cellOther.value!]);
+            }
+            if(!sudoku.listExtra.contains(cellOther.value) && cell.listExtra.contains(cellOther.value!)){
+              sudoku.addOrRemoveExtra([cellOther.value!]);
+            }
+          }
+        }
+      }
+      result.add(sudoku);
+    }
+    return result;
+  }
+
   String get actualImport => SudokuImportAlgorithms().exportBoard(this);
 
   SudokuBoardState({
