@@ -1,18 +1,15 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/games/chess/logic/chess_internet.dart';
-import '../../../../services/get_it_helper.dart';
 import '../../../cards/deck_model.dart';
 import '../widgets/murlan_play.dart';
-class MainChessScreen extends StatefulWidget {
-  const MainChessScreen({super.key});
+class MainMurlanScreen extends StatefulWidget {
+  const MainMurlanScreen({super.key});
 
   @override
-  State<MainChessScreen> createState() => _MainChessScreenState();
+  State<MainMurlanScreen> createState() => _MainMurlanScreenState();
 }
 
-class _MainChessScreenState extends State<MainChessScreen> {
+class _MainMurlanScreenState extends State<MainMurlanScreen> {
   bool initialised = false;
   late String roomId;
   late String startingPosition;
