@@ -136,8 +136,18 @@ class _SudokuControllerState extends State<SudokuController> {
       }
       switch(element.actionType){
         case ActionTypes.number:
-          print("number");
-          widget.numberGroup.actionSelected.value = element;
+          print("number -> $held n ${widget.numberGroup.actionSelected.value == element}");
+          if(held && widget.numberGroup.actionSelected.value == element){
+            widget.numberGroup.actionSelected.value = null;
+          }else{
+            widget.numberGroup.actionSelected.value = element;
+          }
+
+          widget.actualBoard.value.highlightedValue = element.value;
+          if(held) {
+            widget.actualBoard.notifyListeners();
+            break;
+          }
           if(cell != null && cell.type == SudokuCellType.mutable){
             print("number");
             switch(widget.noteTypeGroup.actionSelected.value?.actionType){

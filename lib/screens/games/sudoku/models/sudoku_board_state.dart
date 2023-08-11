@@ -21,6 +21,7 @@ class SudokuBoardState{
   StackDS<SudokuMove> previousMoves;
   StackDS<SudokuMove> redoMoves;
   SudokuLocation? selectedLocation;
+  int? highlightedValue;
   List<SudokuCell> gameCells;
   SudokuGameState gameState;
 
@@ -60,6 +61,7 @@ class SudokuBoardState{
     required this.gameCells,
     this.gameState = SudokuGameState.none,
     this.selectedLocation,
+    this.highlightedValue,
   }): this.redoMoves = StackDS.of(redoMoves),
     this.previousMoves = StackDS.of(previousMoves);
 
@@ -68,7 +70,8 @@ class SudokuBoardState{
     previousMoves = StackDS.of(sudokuBoardState.previousMoves.elementsCopied),
     gameCells = List.from(sudokuBoardState.gameCells),
     gameState = sudokuBoardState.gameState,
-    selectedLocation = sudokuBoardState.selectedLocation == null ? null : SudokuLocation.clone(sudokuBoardState.selectedLocation!);
+    selectedLocation = sudokuBoardState.selectedLocation == null ? null : SudokuLocation.clone(sudokuBoardState.selectedLocation!),
+    highlightedValue = sudokuBoardState.highlightedValue;
 
   bool makeMove(SudokuMove move){
     print(move);
@@ -148,7 +151,9 @@ class SudokuBoardState{
       && listEquals(previousMoves.elementsCopied, other.previousMoves.elementsCopied)
       && listEquals(redoMoves.elementsCopied, other.redoMoves.elementsCopied)
       && listEquals(gameCells, other.gameCells)
-      && this.gameState == other.gameState;
+      && this.gameState == other.gameState
+      && this.selectedLocation == other.selectedLocation
+      && this.highlightedValue == other.highlightedValue;
   }
 
   @override
@@ -157,6 +162,8 @@ class SudokuBoardState{
     redoMoves,
     Object.hashAll(gameCells),
     gameState,
+    selectedLocation,
+    highlightedValue
   );
 
 }
