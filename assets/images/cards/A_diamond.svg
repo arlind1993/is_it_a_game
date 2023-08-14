@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Playing_Cards" data-name="Playing Cards" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 152.06 215.64">
+  <g id="Cards">
+    <g id="Diamonds">
+      <g>
+        <g>
+          <path d="m6.5,0h138.97c.47,0,.95.06,1.41.17l.11.03c.98.25,1.88.74,2.61,1.44l.04.04c.48.46.87,1,1.17,1.59l.41.83c.29.58.48,1.2.56,1.84l.26,1.97c.03.25.05.5.05.75v198.38c0,.26-.02.52-.05.78l-.25,1.86c-.08.61-.26,1.2-.53,1.75l-.41.85c-.32.65-.75,1.24-1.28,1.73l-.05.04c-.67.62-1.48,1.07-2.36,1.32l-.2.05c-.51.14-1.04.22-1.57.22H6.59c-.53,0-1.06-.07-1.57-.22l-.14-.04c-.92-.26-1.76-.74-2.45-1.4h0c-.49-.48-.9-1.04-1.2-1.65l-.41-.84c-.29-.59-.47-1.23-.55-1.88l-.21-1.85c-.02-.22-.04-.43-.04-.65V8.59c0-.21.01-.42.03-.62l.21-1.96c.07-.68.27-1.35.58-1.97l.41-.82c.28-.56.64-1.06,1.08-1.5h0c.74-.74,1.67-1.27,2.69-1.53h.05C5.56.05,6.03,0,6.5,0Z" style="fill: #fff; fill-rule: evenodd;"/>
+          <g>
+            <image width="13" height="17" transform="translate(10.06 39.5)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAARCAYAAAAG/yacAAAACXBIWXMAAAsSAAALEgHS3X78AAAAbElEQVQokWNkQAO3+aX+w0RUPz7DkAcBJgwRJIBsAE5NuBShA0ZiNKA7k5FYG5A1MhLrJGSNeAMCHcAsIEkTDJCkCe48XBGIDxAV5AxooUeU87DGEz7bsDkfxSZi/YfXeSQFEimphDjAwMAAAPaEKhbxgOQdAAAAAElFTkSuQmCC"/>
+            <image width="13" height="17" transform="translate(129.06 161.5)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAARCAYAAAAG/yacAAAACXBIWXMAAAsSAAALEgHS3X78AAAAaElEQVQokWNkQAO3+aX+w0RUPz7DkAcBJmQOsgZ8gAmPHE5DGAkpwOZMJlKchaKJEEA3lJEUW2DOJMomGIBZQJImsmyCAbBOYvyFHOxkxRMKB5tGbOkPr5+ISrC4FBFtE7EGEAcYGBgAiQ4qHg1aiQcAAAAASUVORK5CYII="/>
+          </g>
+        </g>
+        <path d="m21.11,25.32h-8.47l-1.48,3.45c-.37.85-.55,1.48-.55,1.9,0,.33.16.63.47.88.32.25,1,.42,2.06.49v.6h-6.89v-.6c.91-.16,1.51-.37,1.77-.63.55-.52,1.16-1.56,1.82-3.14l7.69-18h.56l7.61,18.19c.61,1.46,1.17,2.41,1.67,2.85.5.44,1.2.68,2.09.73v.6h-8.63v-.6c.87-.04,1.46-.19,1.77-.44.31-.25.46-.55.46-.9,0-.47-.21-1.22-.64-2.24l-1.32-3.14Zm-.45-1.19l-3.71-8.84-3.81,8.84h7.51Z" style="fill: #db0f1a;"/>
+        <path d="m130.43,191.55h8.47l1.48-3.45c.37-.85.55-1.48.55-1.9,0-.33-.16-.63-.48-.88-.32-.25-1-.42-2.06-.49v-.6h6.89v.6c-.91.16-1.51.37-1.77.63-.55.52-1.16,1.56-1.82,3.14l-7.69,18h-.56l-7.61-18.19c-.61-1.46-1.17-2.41-1.67-2.85-.5-.44-1.2-.68-2.09-.73v-.6h8.63v.6c-.87.04-1.46.19-1.77.44-.31.25-.46.55-.46.9,0,.47.22,1.22.65,2.24l1.32,3.14Zm.45,1.19l3.71,8.84,3.8-8.84h-7.51Z" style="fill: #db0f1a;"/>
+        <image width="63" height="95" transform="translate(45.06 56.5)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD8AAABfCAYAAABfqx+FAAAACXBIWXMAAAsSAAALEgHS3X78AAAB+ElEQVR4nO2cS1bDMAxF3a6CIWP2vxbGDNkFHAbiQGs7/kiyPu+OOKFJKr1b182JcysHeH95/aKzvn1+HHkPP6if+G/hxKkG3J+2JEK147XUiRPpq52wVzih3QBoL81I6oRm+uaSn2nULuLFaxYzi6hiO4Vr6G92wNMwRqx4y7oTImpxFi6pv/nveUmD2Iv3oDvBqpRk4RL6Y3rLgYbu3OmzHEzzc87ZAGi/w4nRnSv9rYOc/FrjaAC0X8HCZGY3/aWdLc3idhoA7WewOHdfTX9qJ8s/WlYaAO1H8PBTdTb9UMnPBjRUvKcLFDNcauKx8FH9Qw54o4F1i4+qO9HUI0LhV/p3k/fOVYDV4qPrTjxpEbHwlv7V5LPwryORda+l/7shw+f8sQHQPsvoXh7Sv2UqnKAGpNY+ZfFke8ri02tf0o/29AcmOclIPbe/X70gMim0b4Va3RhJ/1bhpZV8b4dIVIuPwlWI3X961n/E3m7y0fXvFu+V0dCGXuRJ/xlbh5KPqn8o7WdDwg1JWcF9eLPg9tMA4K7rVbDYwDFYY7MLlpY5BCsqucBCYkewd1MifanrCezJe7rwYV57yWaKHZhDf2mLxJL3oL9Z7TWaJ36CFf21rBFP3rL+5rTXbBYeA5kVPP1Uk1oD8NDfA6R+1vUxavoDLUop30Rt8oA14iQmAAAAAElFTkSuQmCC"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Playing_Cards" data-name="Playing Cards" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 152.06 215.64">
+  <defs>
+    <image id="image" width="28" height="39" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAnCAYAAAAcsCj6AAAACXBIWXMAAAsSAAALEgHS3X78AAAA4UlEQVRYhd2XTQ6EIAyFixeY/ey9/4Hcz35OoDGRhIG2tNOfGL/ExBTIax8oAFq213s/H/XAizJEGHqh9ftRjT9ZhoghAVdBi40tIktmYhprTZb+wzQzqZXSKtlO2nmTiLpaKkmQFPRalT2oBVYxztqhwasySpS01AqV+I8g1cmTEi3WW1syKmtFS4aNrWjav7QWlv7zfq5gncP8VVpfsr7DhWqIInQOsSKGQPRugQYj90PUUm6AFVTQwixZtjHi1JZ+Lr3fyRuc7xbijpSodkXf09KKxw1YjfWOn25pLgBwADC2aEn4eLtPAAAAAElFTkSuQmCC"/>
+    <image id="image-2" width="28" height="39" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAnCAYAAAAcsCj6AAAACXBIWXMAAAsSAAALEgHS3X78AAAA4klEQVRYhd2WSw7CMAxEnV6ge/bc/0Ds2XOCIpCMQmon/kswqypK9DxjN0oDpW775cAT18ddfX47rUzUw6xSAUdZChADI9y9JOrBCqbppStSaUEqYFSUqGkUWpgkWnaD1dkKGtLDXqtCSWB033qd7EfBuGi/FqOdUdDPQlaMI5TsYaZapjvKZcuGjdCySNFYeQ//F4g9rJ9S/Kj68cuvtm21IVppQ8MVTy56o+VgLNADncFgFmlWP1mgRa5XG0oarTSR33zqaySujHOpHS6xw6ipdUVacRW+o+XiTYWWAs0CgCfjm2hEZmuouQAAAABJRU5ErkJggg=="/>
+  </defs>
+  <g id="Cards">
+    <g id="Diamonds">
+      <g>
+        <g>
+          <g>
+            <path d="m6.47.14h138.97c.47,0,.95.06,1.41.17l.11.03c.98.25,1.88.74,2.61,1.45l.04.04c.48.46.87.99,1.17,1.59l.41.82c.29.58.48,1.2.56,1.84l.26,1.97c.03.25.05.5.05.75v198.38c0,.26-.02.52-.05.78l-.25,1.86c-.08.61-.26,1.2-.53,1.75l-.41.85c-.32.65-.75,1.23-1.28,1.72l-.05.04c-.67.62-1.48,1.07-2.36,1.32l-.19.05c-.51.14-1.04.22-1.57.22H6.55c-.53,0-1.06-.07-1.57-.22l-.14-.04c-.92-.26-1.76-.74-2.45-1.4h0c-.49-.48-.9-1.04-1.2-1.65l-.41-.84c-.29-.59-.47-1.23-.55-1.88l-.21-1.85c-.02-.22-.04-.44-.04-.65V8.73c0-.21.01-.42.03-.63l.21-1.96c.07-.69.27-1.35.58-1.97l.41-.82c.28-.56.64-1.06,1.09-1.5h0c.74-.74,1.67-1.27,2.69-1.52h.05c.46-.13.93-.19,1.41-.19Z" style="fill: #fff; fill-rule: evenodd;"/>
+            <image width="12" height="17" transform="translate(10.43 36.5)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAARCAYAAADpPU2iAAAACXBIWXMAAAsSAAALEgHS3X78AAAAXElEQVQokWNkQAO3+aX+w0RUPz7DkGdC5iArxgUYCSlGt4URn2JsmpgwZAkARmLcjWwL0TbADCbZSbTTAPMDycFKcsSRHg/IHHRbsCU+DADShM9PJDuJNMDAwAAAyBkmIXuIVuAAAAAASUVORK5CYII="/>
+            <image width="13" height="17" transform="translate(128.43 158.5)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAARCAYAAAAG/yacAAAACXBIWXMAAAsSAAALEgHS3X78AAAAZUlEQVQokWNkQAO3+aX+w0RUPz7DkAcBJgwRJIBsAE5NuBShA0ZiNKA7E6/zcBnIiE0QF4DZyESsBpKdh+5MkjTBAHl+wpDBAZCDnbJ4wpXOsAG8CRaXYXj9RHQqJ8WZxAMGBgYAmKkqHoW4VhkAAAAASUVORK5CYII="/>
+          </g>
+          <path d="m22.31,22.93v2.26h-2.9v5.7h-2.63v-5.7H7.64v-2.04l10.02-14.31h1.75v14.09h2.9Zm-5.53,0v-10.72l-7.58,10.72h7.58Z" style="fill: #db0f1a;"/>
+          <path d="m126.64,187.81v-2.26h2.9v-5.71h2.63v5.71h9.14v2.04l-10.02,14.31h-1.75v-14.08h-2.9Zm5.53,0v10.72l7.58-10.72h-7.58Z" style="fill: #db0f1a;"/>
+        </g>
+        <g>
+          <g>
+            <use transform="translate(34.43 26.5)" xlink:href="#image"/>
+            <use transform="translate(34.43 150.5)" xlink:href="#image-2"/>
+          </g>
+          <g>
+            <use transform="translate(89.43 26.5)" xlink:href="#image"/>
+            <use transform="translate(89.43 150.5)" xlink:href="#image-2"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
