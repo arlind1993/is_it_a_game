@@ -7,7 +7,9 @@ class DeckModel {
     this.withJacks = true,
   }): cards = [
     if(withJacks) ...[CardModel(number: 15, suit: 0), CardModel(number: 14, suit: 0)],
-    ...List.generate(13 * 4, (index) => CardModel(number: index % 4 + 1, suit: index ~/ 4 + 1))
+    ...List.generate(13 * 4, (index) {
+      return CardModel(number: (index % 13) + 1, suit: (index ~/ 13) + 1);
+    })
   ]{
     cards.shuffle();
   }

@@ -5,9 +5,6 @@ class PlayerModel{
   PlayerModel({
     List<CardModel>? importCards,
   }) {
-    this.cards.addAll(importCards ?? []);
+    cards.addAll(importCards ?? []);
   }
-
-
-
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:game_template/widgets/text_widget.dart';
 
 enum Suit{
   none,
@@ -75,7 +76,7 @@ extension NumberExtension on Number{
       };
       case Number.ten: return {
         "value": 10,
-        "string": "♠",
+        "string": "10",
         "number": this,
       };
       case Number.jack: return {
@@ -154,7 +155,7 @@ extension NumberExtension on Number{
       };
       case 10: return {
         "value": value,
-        "string": "♠",
+        "string": "10",
         "number": Number.ten,
       };
       case 11: return {
@@ -249,17 +250,42 @@ extension SuitExtension on Suit{
 }
 
 class CardModel{
+  static final double SIZE_FACTOR = 3.5;
+  static final double CARD_HEIGHT = 35 * SIZE_FACTOR;
+  static final double CARD_WIDTH = 25 * SIZE_FACTOR;
+
   int number;
   int suit;
   late Widget card;
+  bool selected;
 
   Map<String, dynamic> get numberExtended => NumberExtension.getExtended(number);
   Map<String, dynamic> get suitExtended => SuitExtension.getExtended(number);
   CardModel({
     required this.number,
-    required this.suit
+    required this.suit,
+    this.selected = false,
   }){
-    card = Container();
+    print("$number $suit");
+    card = Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(2, (index) => Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(2, (index) => TextWidget(
+              text: "${NumberExtension.getExtended(number)["string"]}${SuitExtension.getExtended(suit)["icon"]}"
+          ))
+        )),
+      ),
+    );
   }
 
+  void toggle(){
+    selected = !selected;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CardModel && number == other.number && suit == other.suit && selected == other.selected;
+  }
 }
