@@ -1,4 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:game_template/screens/cards/card_constants.dart';
+import 'package:game_template/services/get_it_helper.dart';
 import 'package:game_template/widgets/text_widget.dart';
 
 enum Suit{
@@ -267,15 +269,39 @@ class CardModel{
     this.selected = false,
   }){
     print("$number $suit");
+    String? numberString = NumberExtension.getExtended(number)["string"];
+    String? suitIcon = SuitExtension.getExtended(suit)["icon"];
+    Suit? suitDefinition = SuitExtension.getExtended(suit)["suit"];
+
     card = Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(2, (index) => Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(2, (index) => TextWidget(
-              text: "${NumberExtension.getExtended(number)["string"]}${SuitExtension.getExtended(suit)["icon"]}"
-          ))
-        )),
+       clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all()
+      ),
+      child: IndexedStack(
+        index: 0,
+        children: [
+          Container(
+            color: Colors.white,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(2, (indexR) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(2, (index) => RotatedBox(
+                  quarterTurns: indexR == 0 ? 0 : 2,
+                  child: TextWidget(
+                      text: "$numberString\n$suitIcon"
+                  ),
+                ))
+              )),
+            ),
+          ),
+          getIt<CardConstants>().cardBack,
+          getIt<CardConstants>().cardImageImporter(
+            "$numberString${suitDefinition != null && suitDefinition != Suit.none ? "_${suitDefinition.name}" : ""}"
+          )
+        ],
       ),
     );
   }

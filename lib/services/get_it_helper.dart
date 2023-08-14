@@ -1,4 +1,7 @@
+import 'package:game_template/screens/cards/card_constants.dart';
 import 'package:game_template/screens/games/chess/logic/chess_internet.dart';
+import 'package:game_template/screens/games/chess/models/chess_constants.dart';
+import 'package:game_template/screens/games/sudoku/models/sudoku_constants.dart';
 import 'package:game_template/screens/routes_controller.dart';
 import 'package:game_template/screens/screens_controller.dart';
 import 'package:game_template/services/firebase/firebase_fcm.dart';
@@ -15,6 +18,9 @@ final GetIt getIt = GetIt.instance;
 
 getItSetUp() async{
   getIt.registerLazySingleton<AppColor>(() => AppColor());
+  getIt.registerLazySingleton<CardConstants>(() => CardConstants());
+  getIt.registerLazySingleton<ChessConstants>(() => ChessConstants());
+  getIt.registerLazySingleton<SudokuConstants>(() => SudokuConstants());
   getIt.registerLazySingleton<CustomTransitionBuilder>(() => CustomTransitionBuilder());
   getIt.registerLazySingleton<CustomSnackBar>(() => CustomSnackBar());
   getIt.registerLazySingleton<RoutesController>(() => RoutesController());

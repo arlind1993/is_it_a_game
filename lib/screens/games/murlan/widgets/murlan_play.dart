@@ -1,12 +1,9 @@
-import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
+
 import 'package:flutter/material.dart';
 import 'package:game_template/screens/games/murlan/murlan_state.dart';
 import 'package:game_template/screens/games/murlan/widgets/indexer_widget.dart';
-import 'package:provider/provider.dart';
-
 import '../../../cards/card_model.dart';
 import '../../../cards/deck_model.dart';
-import '../../../cards/player_model.dart';
 enum Direction{
   left,
   right,
@@ -14,9 +11,10 @@ enum Direction{
   bottom
 }
 class MurlanPlay extends StatelessWidget {
+
   ValueNotifier<MurlanState> murlanState;
-  final double betweenCardsSpacing = 20;
-  final double cardSelectedSpacing = 30;
+  final double betweenCardsSpacing = 18;
+  final double cardSelectedSpacing = 50;
   MurlanPlay({
     Key? key,
     int playerCount = 4,
@@ -74,6 +72,16 @@ class MurlanPlay extends StatelessWidget {
                           double left = 0;
                           double top = 0;
 
+                          int turns = 0;
+                          if(e.value == Direction.left){
+                            turns = 1;
+                          }else if(e.value == Direction.top){
+                            turns = 2;
+                          }else if(e.value == Direction.right){
+                            turns = 3;
+                          }
+                          print(turns);
+
                           if(e.value == Direction.left && murlanState.value.players[e.key-1].cards[index].selected
                               || e.value == Direction.right && !murlanState.value.players[e.key-1].cards[index].selected){
                             left = cardSelectedSpacing;
@@ -104,10 +112,13 @@ class MurlanPlay extends StatelessWidget {
                                 width: width,
                                 height: height,
                                 decoration: BoxDecoration(
-                                  color: e.value == Direction.left ? Colors.purple : e.value == Direction.bottom ? Colors.blue : e.value == Direction.right ? Colors.orange : Colors.red,
-                                  border: Border.all(),
+                                  // color: e.value == Direction.left ? Colors.purple : e.value == Direction.bottom ? Colors.blue : e.value == Direction.right ? Colors.orange : Colors.red,
+                                  //border: Border.all(),
                                 ),
-                                child: murlanState.value.players[e.key-1].cards[index].card,
+                                child: RotatedBox(
+                                  quarterTurns: turns,
+                                  child: murlanState.value.players[e.key-1].cards[index].card
+                                ),
                               ),
                             ),
                           );
