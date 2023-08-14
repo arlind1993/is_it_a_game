@@ -11,7 +11,7 @@ import 'account/settings_screen.dart';
 import 'games/game_selector_screen.dart';
 import 'games/chess/screen/main_chess_screen.dart';
 import 'games/murlan/screen/main_murlan_screen.dart';
-import 'games/poker/poker.dart';
+import 'games/poker/screen/main_poker_screen.dart';
 import 'games/wire/main_wire_screen.dart';
 import 'main_menu_screen.dart';
 
