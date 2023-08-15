@@ -259,14 +259,12 @@ class CardModel{
   int number;
   int suit;
   late Widget card;
-  bool selected;
 
   Map<String, dynamic> get numberExtended => NumberExtension.getExtended(number);
   Map<String, dynamic> get suitExtended => SuitExtension.getExtended(number);
   CardModel({
     required this.number,
     required this.suit,
-    this.selected = false,
   }){
     print("$number $suit");
     String? numberString = NumberExtension.getExtended(number)["string"];
@@ -280,7 +278,7 @@ class CardModel{
         border: Border.all()
       ),
       child: IndexedStack(
-        index: 0,
+        index: 2,
         children: [
           Container(
             color: Colors.white,
@@ -306,12 +304,8 @@ class CardModel{
     );
   }
 
-  void toggle(){
-    selected = !selected;
-  }
-
   @override
   bool operator ==(Object other) {
-    return other is CardModel && number == other.number && suit == other.suit && selected == other.selected;
+    return other is CardModel && number == other.number && suit == other.suit;
   }
 }
