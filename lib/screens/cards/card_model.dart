@@ -246,7 +246,7 @@ extension SuitExtension on Suit{
         "icon": "♥",
         "suit": Suit.hearts,
       };
-      default: throw "non valid Value";
+      default: throw "non valid Value $value";
     }
   }
 }
@@ -261,7 +261,7 @@ class CardModel{
   late Widget card;
 
   Map<String, dynamic> get numberExtended => NumberExtension.getExtended(number);
-  Map<String, dynamic> get suitExtended => SuitExtension.getExtended(number);
+  Map<String, dynamic> get suitExtended => SuitExtension.getExtended(suit);
   CardModel({
     required this.number,
     required this.suit,

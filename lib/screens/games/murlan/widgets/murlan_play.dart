@@ -149,8 +149,24 @@ class MurlanPlay extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ButtonWidget(textWidget: TextWidget(text: "Pass")),
-                            ButtonWidget(textWidget: TextWidget(text: "Throw")),
+                            ButtonWidget(
+                              textWidget: TextWidget(text: "Pass"),
+                              action: (){
+                                bool res = murlanState.value.pass(murlanState.value.players[e.key-1]);
+                                if(res){
+                                  murlanState.notifyListeners();
+                                }
+                              },
+                            ),
+                            ButtonWidget(
+                              textWidget: TextWidget(text: "Throw"),
+                              action: (){
+                                bool res = murlanState.value.throwCards(murlanState.value.players[e.key-1].cards.where((element) => element.selected).toList(), murlanState.value.players[e.key-1]);
+                                if(res){
+                                  murlanState.notifyListeners();
+                                }
+                              },
+                            ),
                           ],
                         )
                     ),

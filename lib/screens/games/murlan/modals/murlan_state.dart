@@ -33,12 +33,16 @@ class MurlanState{
       int value = cards[0].murlanValue;
       for(int i = 1; i < cards.length; i++){
         if(cards[i].murlanValue != value){
+          print("NOs of $value");
           return false;
         }
       }
+      print("${cards.length}s of $value");
       return true;
     }else{
-      return false;
+      bool res = cardCombinationColor(cards);
+      print("Cards are color: $res");
+      return res;
     }
   }
 
@@ -46,24 +50,77 @@ class MurlanState{
       cards.length == 4 && cardCombinationPossible(cards);
 
   bool cardCombinationColor(List<CardMurlanModel> cards){
+    print("is it a color?");
     if(cards.length < 5) return false;
     List<int> link = [12, 13, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     List<int> cardsVal = cards.map((e) => e.murlanValue).toList()..sort();
     for(int i = 0; i < cards.length - 1; i++){
       if(cardsVal[i] == cardsVal[i+1]){
+        print("Same cards selected");
         return false;
       }
     }
+    print("Diferent cards selected");
     for(int i = 0; i < link.length; i++){
+      print(i);
+
       if(link[i] == cardsVal.first){
-        int res = search(
-          valuesVisited: [],
-          link: link,
-          chainLeft: cardsVal.where((element) => element != cardsVal.first).toList(),
-          pivotInLink: i,
-          canGoLeft: true,
-          canGoRight: true
-        );
+        List<int> valuesVisited = [cardsVal.first];
+        List<int> chainLeft = cardsVal.where((element) => element != cardsVal.first).toList();
+        int? leftPivot;
+        int? rightPivot;
+        bool canGoLeft = true;
+        bool canGoRight = true;
+        int res = 0;
+        for(int p = 0; p< link.length*2; p++){
+          print("Recursivity: ${[
+            valuesVisited,
+            link,
+            chainLeft,
+            leftPivot,
+            rightPivot,
+            canGoLeft,
+            canGoRight]}");
+          if(chainLeft.length == 0){
+            res = valuesVisited.length;
+            break;
+          }
+          leftPivot = canGoLeft ? ((leftPivot ?? i) - 1 >= 0 ? (leftPivot ?? i) - 1 : null) : null;
+          rightPivot = canGoRight ? ((rightPivot ?? i) + 1 < link.length ? (rightPivot ?? i) + 1 : null) : null;
+          print("LP: $leftPivot , RP: $rightPivot");
+          if(leftPivot == null && rightPivot == null){
+            res = valuesVisited.length;
+            break;
+          }
+          int? leftPivotValue = leftPivot == null ? null : valuesVisited.contains(link[leftPivot])? null:  link[leftPivot];
+          int? rightPivotValue = rightPivot == null ? null : valuesVisited.contains(link[rightPivot])? null:  link[rightPivot];
+          print("LPV: $leftPivotValue , RPV: $rightPivotValue");
+
+          print("CheckL ${chainLeft.contains(leftPivotValue)}");
+          print("CheckR ${chainLeft.contains(rightPivotValue)}");
+          bool changed = false;
+          if(leftPivotValue != null && chainLeft.contains(leftPivotValue)){
+            valuesVisited.add(leftPivotValue);
+            chainLeft = chainLeft.where((element) => element != leftPivotValue).toList();
+            canGoLeft = true;
+            changed = true;
+          }else{
+            canGoLeft = false;
+          }
+          if(rightPivotValue != null && chainLeft.contains(rightPivotValue)){
+            valuesVisited.add(rightPivotValue);
+            chainLeft = chainLeft.where((element) => element != rightPivotValue).toList();
+            canGoRight = true;
+            changed = true;
+          }else{
+            canGoRight = false;
+          }
+          if(!changed){
+            print("beak here");
+            res = valuesVisited.length;
+            break;
+          }
+        }
         if(res == cards.length){
           return true;
         }
@@ -72,55 +129,17 @@ class MurlanState{
     return false;
   }
 
-  int search({
-    required List<int> valuesVisited,
-    required List<int> link,
-    required List<int> chainLeft,
-    required int pivotInLink,
-    required bool canGoLeft,
-    required bool canGoRight
-  }) {
-    if(chainLeft.length == 0){
-      return valuesVisited.length;
-    }
-    int? leftPivot = canGoLeft ? (pivotInLink - 1 >= 0 ? pivotInLink - 1 : null) : null;
-    int? rightPivot = canGoRight ? (pivotInLink + 1 < link.length ? pivotInLink + 1 : null) : null;
-    if(leftPivot == null && rightPivot == null){
-      return valuesVisited.length;
-    }
-    int? leftPivotValue = leftPivot == null ? null : valuesVisited.contains(link[leftPivot])? null:  link[leftPivot];
-    int? rightPivotValue = rightPivot == null ? null : valuesVisited.contains(link[rightPivot])? null:  link[rightPivot];
-    if(leftPivotValue != null && chainLeft.contains(leftPivotValue)){
-      return search(
-        valuesVisited: valuesVisited..add(leftPivotValue),
-        link: link,
-        chainLeft: chainLeft.where((element) => element != leftPivotValue).toList(),
-        pivotInLink: leftPivot!,
-        canGoLeft: true,
-        canGoRight: rightPivotValue != null
-      );
-    }else if(rightPivotValue != null && chainLeft.contains(leftPivotValue)){
-      return search(
-        valuesVisited: valuesVisited..add(rightPivotValue),
-        link: link,
-        chainLeft: chainLeft.where((element) => element != rightPivotValue).toList(),
-        pivotInLink: rightPivot!,
-        canGoLeft: leftPivotValue != null,
-        canGoRight: true
-      );
-    }else{
-      return valuesVisited.length;
-    }
-  }
-
-
   bool throwCards(List<CardMurlanModel> cardsThrown, PlayerMurlanModel player){
+    print("CardsThrown: ${cardsThrown.map((e) =>
+    "${e.numberExtended["string"]}${e.suitExtended["icon"]}")}");
     if(!cardCombinationPossible(cardsThrown)) return false;
     TurnMurlanModel? lastTurn;
-    for(int i = table.length - 1; i <= 0; i--){
-      if(!table[i].passed){
-        lastTurn = table[i];
-        break;
+    if(table.length >= 1) {
+      for (int i = table.length - 1; i <= 0; i--) {
+        if (!table[i].passed) {
+          lastTurn = table[i];
+          break;
+        }
       }
     }
     if(lastTurn == null){
@@ -134,6 +153,7 @@ class MurlanState{
     table.add(TurnMurlanModel(turnCount: table.isEmpty ? 1 : table.last.turnCount + 1, playerIdPlayedCards: player.playerId));
     return true;
   }
+
 
 
 }
