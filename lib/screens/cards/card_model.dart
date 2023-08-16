@@ -266,7 +266,6 @@ class CardModel{
     required this.number,
     required this.suit,
   }){
-    print("$number $suit");
     String? numberString = NumberExtension.getExtended(number)["string"];
     String? suitIcon = SuitExtension.getExtended(suit)["icon"];
     Suit? suitDefinition = SuitExtension.getExtended(suit)["suit"];

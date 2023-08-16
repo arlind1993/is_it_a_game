@@ -1,10 +1,10 @@
-import 'package:game_template/screens/games/murlan/card_murlan_model.dart';
-
-import '../../cards/card_model.dart';
+import 'card_murlan_model.dart';
 
 class PlayerMurlanModel{
+  String playerId;
   List<CardMurlanModel> cards = [];
   PlayerMurlanModel({
+    required this.playerId,
     List<CardMurlanModel>? importCards,
   }) {
     cards.addAll(importCards ?? []);
