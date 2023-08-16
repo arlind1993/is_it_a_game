@@ -23,6 +23,7 @@ class SudokuAction {
   final int? value;
   final int row;
   final int col;
+
   SudokuAction({
     required this.row,
     required this.col,
