@@ -1,4 +1,6 @@
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:game_template/screens/games/murlan/modals/murlan_state.dart';
 import 'package:game_template/screens/games/murlan/widgets/indexer_widget.dart';
@@ -20,10 +22,10 @@ class MurlanPlay extends StatelessWidget {
   final double actionToCardSpacing = 5;
   MurlanPlay({
     Key? key,
-    int playerCount = 3,
+    int playerCount = 4,
     required DeckModel deck,
   }) : murlanState = ValueNotifier(MurlanState(playerCount: playerCount, deck: deck)), super(key: key) {
-    assert(murlanState.value.playerCount >= 2 && murlanState.value.playerCount <= 4);
+    assert(murlanState.value.playerCount == 2 || murlanState.value.playerCount == 3 || murlanState.value.playerCount == 4);
   }
 
   @override
@@ -61,7 +63,7 @@ class MurlanPlay extends StatelessWidget {
               //print("${e.value} : ${murlanState.value.players[e.key - 1].cards.length}");
               int turns = 0;
               Axis lrH= e.value == Direction.left || e.value == Direction.right ? Axis.horizontal : Axis.vertical;
-              print("${e.value} $lrH");
+              //print("${e.value} $lrH");
               if(e.value == Direction.left){
                 turns = 1;
               }else if(e.value == Direction.top){
@@ -106,12 +108,12 @@ class MurlanPlay extends StatelessWidget {
                       return Indexed(
                         child: GestureDetector(
                           onTapUp: (details) {
-                            print(details);
+                            //print(details);
                             murlanState.value.players[e.key-1].cards[index].toggle();
                             murlanState.notifyListeners();
                           },
                           onTapDown: (details) {
-                            print(details);
+                            //print(details);
                           },
                           child: Container(
                             margin: EdgeInsets.only(
@@ -126,7 +128,14 @@ class MurlanPlay extends StatelessWidget {
                             ),
                             child: RotatedBox(
                               quarterTurns: turns,
-                              child: murlanState.value.players[e.key-1].cards[index].card
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(child: murlanState.value.players[e.key-1].cards[index].card),
+                                  Positioned.fill(child: IgnorePointer(child: Container(
+                                    color: murlanState.value.players[e.key-1].playerId == murlanState.value.playerTurn ? null : Color(0x88ffffff)
+                                  ))),
+                                ],
+                              )
                             ),
                           ),
                         ),
@@ -154,6 +163,7 @@ class MurlanPlay extends StatelessWidget {
                               action: (){
                                 bool res = murlanState.value.pass(murlanState.value.players[e.key-1]);
                                 if(res){
+                                  print("Changed");
                                   murlanState.notifyListeners();
                                 }
                               },
@@ -163,6 +173,7 @@ class MurlanPlay extends StatelessWidget {
                               action: (){
                                 bool res = murlanState.value.throwCards(murlanState.value.players[e.key-1].cards.where((element) => element.selected).toList(), murlanState.value.players[e.key-1]);
                                 if(res){
+                                  print("Changed");
                                   murlanState.notifyListeners();
                                 }
                               },
@@ -172,9 +183,32 @@ class MurlanPlay extends StatelessWidget {
                     ),
                   ),
                 )
-              )
+              ),
               ];
             }).expand((element) => element).toList(),
+            ...murlanState.value.table.asMap().entries.map((e) {
+              print("${e.key} -> ${e.value}");
+              bool foc = e.key == murlanState.value.table.length - 1;
+              return Positioned.fill(
+                top: 200,
+                bottom: 400,
+                left: 20,
+                right: 20,
+                child: Center(
+                  child: Transform(
+                    transform: Matrix4.zero(),
+                    //transform: Matrix4.rotationZ(Random().nextDouble()* 2 * pi),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: e.value.cardsPlayed.map((e) => Container(
+                        decoration: BoxDecoration(border: Border.all(color: foc ? Colors.red : Colors.black)),
+                        child: e.card
+                      )).toList(),
+                    )
+                  )
+                ),
+              );
+            })
           ],
         );
       },

@@ -307,4 +307,9 @@ class CardModel{
   bool operator ==(Object other) {
     return other is CardModel && number == other.number && suit == other.suit;
   }
+
+  @override
+  String toString() {
+    return "${numberExtended["string"]}${suitExtended["icon"]}";;
+  }
 }
