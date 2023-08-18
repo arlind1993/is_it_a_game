@@ -2,11 +2,10 @@ import 'card_murlan_model.dart';
 
 class PlayerMurlanModel{
   String playerId;
-  List<CardMurlanModel> cards = [];
+  List<CardMurlanModel> cards;
+  int initCount;
   PlayerMurlanModel({
     required this.playerId,
-    List<CardMurlanModel>? importCards,
-  }) {
-    cards.addAll(importCards ?? []);
-  }
+    this.cards = const[],
+  }): initCount = cards.length;
 }

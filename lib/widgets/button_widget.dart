@@ -117,6 +117,8 @@ class ButtonWidget extends StatelessWidget {
         ),
       ),
       child: InkWell(
+        highlightColor: action == null ? Colors.transparent : null,
+        splashColor: action == null ? Colors.transparent : null,
         onTap: () {
           if(action!=null){
             action!();
