@@ -2,91 +2,88 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:game_template/services/extensions/string_extensions.dart';
-import 'package:game_template/widgets/text_widget.dart';
+import 'text_widget.dart';
+import 'custom_edge_insets.dart';
 
 import '../services/app_styles/app_color.dart';
-import '../services/extensions/easy_widget_extensions.dart';
 import '../services/get_it_helper.dart';
-
 enum TextFieldTypes{
-  text,
-  paragraph,
-  email,
-  password,
-  number,
-  integer,
-  phone,
-  address,
-}extension TextFieldTypesExtension on TextFieldTypes{
-  TextInputType inputType(){
-    switch(this){
-      case TextFieldTypes.text: return TextInputType.text;
-      case TextFieldTypes.paragraph: return TextInputType.multiline;
-      case TextFieldTypes.email: return TextInputType.emailAddress;
-      case TextFieldTypes.password: return TextInputType.visiblePassword;
-      case TextFieldTypes.number: return TextInputType.numberWithOptions(signed: true, decimal: true);
-      case TextFieldTypes.integer: return TextInputType.numberWithOptions(signed: true);
-      case TextFieldTypes.phone: return TextInputType.phone;
-      case TextFieldTypes.address: return TextInputType.streetAddress;
-    }
-  }
-  Map<String, String> automaticValidationRegex(){
-    switch(this){
-      case TextFieldTypes.text: return {
-        r"^.*$": "Text is not a paragraph",
-      };
-      case TextFieldTypes.paragraph: return {};
-      case TextFieldTypes.email: return {
-        "^((?![${RegExTensions.emailNonConsecutive}][${RegExTensions.emailNonConsecutive}]).)*\$":"These characters shouldn't be inputted consecutively: ., -, and _!",
+  text(
+      inputType: TextInputType.text,
+      automaticRegexValidation: const{r"^.*$": "Text is not a paragraph",},
+      fullRegexValidation: const MapEntry(r"^.+", "The text is empty")
+  ),
+  paragraph(
+      inputType: TextInputType.multiline,
+      automaticRegexValidation: const{},
+      fullRegexValidation: const MapEntry(r"^(.|\n)+$", "The paragraph is empty")
+  ),
+  email(
+      inputType: TextInputType.emailAddress,
+      automaticRegexValidation: const{
+        "^((?![${emailNonConsecutive}][${emailNonConsecutive}]).)*\$":"These characters shouldn't be inputted consecutively: ., -, and _!",
         r"^([^\@\.\_\-].*[^\@\.\_\-])|[^\@\.\_\-]?$":"These characters shouldn't be inputted in the beginning or the end: ., -, and _!",
-        "^[${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}${RegExTensions.emailNonConsecutive}\\@]*\$": "Invalid Character/s",
+        "^[${allAlphabetNumbers}${emailSpecialChars}${emailNonConsecutive}\\@]*\$": "Invalid Character/s",
         r"^[^@]*@?[^@]*$": "There shouldn't be two '@'!",
         r"(^(?=^[^@]*)[^@]*$)|(^.{0,64}@.*$)": "There shouldn't be more than 64 characters before '@'!",
         r"(^(?=^[^@]*)[^@]*$)|(^.*@.{0,253}$)": "There shouldn't be more than 253 characters after '@'!",
-        "(^(?=^[^@]*)[^@]*\$)|(^.*@(([${RegExTensions.allAlphabetNumbers}\\-]{2,})([\\.]))*([${RegExTensions.allAlphabetNumbers}\\-]*)\$)": "There should more than two characters after . in domain section of the email!",
-      };
-      case TextFieldTypes.password: return {};
-      case TextFieldTypes.number: return {
+        "(^(?=^[^@]*)[^@]*\$)|(^.*@(([${allAlphabetNumbers}\\-]{2,})([\\.]))*([${allAlphabetNumbers}\\-]*)\$)": "There should more than two characters after . in domain section of the email!",
+      },
+      fullRegexValidation: const MapEntry("^(?!^.{65,}\\@)(([${allAlphabetNumbers}${emailSpecialChars}]+)([${emailNonConsecutive}])?)*([${allAlphabetNumbers}${emailSpecialChars}]+)(?!\\@.{256,}\$)\\@(([${allAlphabetNumbers}\\-]{2,})([\\.]))+([${allAlphabetNumbers}\\-]{2,})\$", "The email is not valid")
+  ),
+  password(
+      inputType: TextInputType.visiblePassword,
+      automaticRegexValidation: const{},
+      fullRegexValidation: const MapEntry(r"^(?=.*[A-Za-z])(?=.*\d).{6,}$", "The password is not valid")
+  ),
+  number(
+      inputType: TextInputType.numberWithOptions(signed: true, decimal: true),
+      automaticRegexValidation: const{
         r"^[.,0-9]*$" : "Invalid characters!",
         r"^[^.,]*.?[^.,]*$" : "There more than one character of type '.' or ','!",
-        r"^([^.,].*[^.,]|[^.,])$": "The character '.' or ',' shouldn't be in the beginning or end",};
-      case TextFieldTypes.integer: return {
-        r"^[/d]*$" : "Invalid characters!",};
-      case TextFieldTypes.phone: return {
+        r"^([^.,].*[^.,]|[^.,])$": "The character '.' or ',' shouldn't be in the beginning or end",
+      },
+      fullRegexValidation: const MapEntry(r"^[\d]+([.,][\d]+)?$", "The number is not valid")
+  ),
+  integer(
+      inputType: TextInputType.numberWithOptions(signed: true),
+      automaticRegexValidation: const{
+        r"^[/d]*$" : "Invalid characters!",
+      },
+      fullRegexValidation: const MapEntry(r"^\d*$", "The integer is not valid")
+  ),
+  phone(
+      inputType: TextInputType.phone,
+      automaticRegexValidation: const{
         r"^[/d/+/- ]*$": "Invalid characters",
         r"^(?!--).*$": "Hyphens can't be inputted consecutively!",
         r"^(?!--)\+?(00)?([\d] {0,2}-? {0,2}){7,15}$": "No phone number can have more than 15 digits",
         r"^+?[^+]*$": "The character + can be inputted only in the begging",
-      };
-      case TextFieldTypes.address: return {
+      },
+      fullRegexValidation: const MapEntry(r"^(?!--)\+?(00)?([\d] {0,2}-? {0,2}){6,14}\d$", "The phone is not valid")
+  ),
+  address(
+      inputType: TextInputType.streetAddress,
+      automaticRegexValidation: const{
         r"^[#\w\.\,\-]*$": "Invalid characters",
-      };
-    }
-  }
-  Map<String, String> validationRegex(){
-    switch(this){
-      case TextFieldTypes.text: return {
-        r"^.+" : "The text is empty"};
-      case TextFieldTypes.paragraph: return {
-        r"^(.|\n)+$": "The paragraph is empty"};
-      case TextFieldTypes.email: return {
-        "^(?!^.{65,}\\@)(([${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}]+)([${RegExTensions.emailNonConsecutive}])?)*([${RegExTensions.allAlphabetNumbers}${RegExTensions.emailSpecialChars}]+)(?!\\@.{256,}\$)\\@(([${RegExTensions.allAlphabetNumbers}\\-]{2,})([\\.]))+([${RegExTensions.allAlphabetNumbers}\\-]{2,})\$":"The email is not valid"};
-      case TextFieldTypes.password: return {
-        r"^(?=.*[A-Za-z])(?=.*\d).{6,}$":"The password is not valid"};
-      case TextFieldTypes.number: return {
-        r"^[\d]+([.,][\d]+)?$": "The number is not valid"};
-      case TextFieldTypes.integer: return {
-        r"^\d*$":"The integer is not valid"};
-      case TextFieldTypes.phone: return {
-        r"^(?!--)\+?(00)?([\d] {0,2}-? {0,2}){6,14}\d$":"The phone is not valid"};
-      case TextFieldTypes.address: return {
-        "^[#\\w\\.\\,\\-\\'\\\"]+\$":"The address is not valid"};
-    }
-  }
+      },
+      fullRegexValidation: const MapEntry("^[#\\w\\.\\,\\-\\'\\\"]+\$", "The address is not valid")
+  );
+  static const String allAlphabetNumbers = "0-9a-zA-Z";
+  static const String emailSpecialChars = r"\!\#\$\%\&\'\*\/\=\?\^\`\{\|\}\(\)\[\]\<\>\,";
+  static const String emailNonConsecutive = r"\_\.\-";
+  const TextFieldTypes({
+    required this.inputType,
+    required this.automaticRegexValidation,
+    required this.fullRegexValidation,
+  });
+  final TextInputType inputType;
+  final Map<String, String> automaticRegexValidation;
+  final MapEntry<String, String> fullRegexValidation;
 }
 
 class TextFieldWidget extends StatelessWidget {
+  static final Color defaultColor = getIt<AppColor>().ink;
   final String unique;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
@@ -177,10 +174,10 @@ class TextFieldWidget extends StatelessWidget {
 
     backgroundColor ??= Colors.transparent;
     iconSize ??= DefaultTextSizes.medium.value;
-    iconColor ??= getIt<AppColor>().ink;
+    iconColor ??= defaultColor;
     prefixColor ??= iconColor;
     suffixColor ??= iconColor;
-    elevationColor ??= getIt<AppColor>().ink;
+    elevationColor ??= defaultColor;
     prefixWidgetIcon ??= prefixIcon == null ? null : Icon(
       prefixIcon,
       color: prefixColor,
@@ -193,9 +190,9 @@ class TextFieldWidget extends StatelessWidget {
     );
     ValueNotifier<bool> obscured = ValueNotifier(false);
     if(textFieldTypes != null){
-      textInputType = textFieldTypes.inputType();
-      autoValidateRegex = textFieldTypes.automaticValidationRegex();
-      validateRegex = textFieldTypes.validationRegex();
+      textInputType = textFieldTypes.inputType;
+      autoValidateRegex = textFieldTypes.automaticRegexValidation;
+      validateRegex = {textFieldTypes.fullRegexValidation.key: textFieldTypes.fullRegexValidation.value};
       if(textFieldTypes == TextFieldTypes.password){
         minLines = null;
         maxLines = 1;
@@ -220,8 +217,8 @@ class TextFieldWidget extends StatelessWidget {
       }
     }
     borderRadius??=10;
-    borderColor??=getIt<AppColor>().ink;
-    borderFocusedColor??=getIt<AppColor>().greenMain;
+    borderColor??=defaultColor;
+    borderFocusedColor??=borderColor;
     borderWidth??= 2;
     InputBorder border = underlineBorder ? UnderlineInputBorder(
         borderSide: BorderSide(
@@ -252,7 +249,7 @@ class TextFieldWidget extends StatelessWidget {
       borderRadius: BorderRadius.circular(borderRadius),
     );
 
-    textColor??= getIt<AppColor>().ink;
+    textColor??= defaultColor;
     labelTextColor??= textColor;
     hintTextColor??=Color.lerp(textColor, Colors.transparent, 0.5);
     errorTextColor??= Colors.red;
@@ -449,7 +446,7 @@ class TextFieldWidget extends StatelessWidget {
                     prefixIconConstraints: BoxConstraints(),
                     suffixIconConstraints: BoxConstraints(),
                     prefixIcon: prefixIcon == null ? null : Padding(
-                      padding: EdgeInsetsExtension.custom(
+                      padding: CustomEdgeInsets(
                         horizontal: paddingHorizontal,
                         vertical: paddingVertical,
                         right: 0,
@@ -457,7 +454,7 @@ class TextFieldWidget extends StatelessWidget {
                       child: prefixIcon,
                     ),
                     suffixIcon: suffixIcon == null ? null : Padding(
-                      padding: EdgeInsetsExtension.custom(
+                      padding: CustomEdgeInsets(
                         horizontal: paddingHorizontal,
                         vertical: paddingVertical,
                         left: 0,
@@ -471,7 +468,7 @@ class TextFieldWidget extends StatelessWidget {
                     focusedBorder: borderFocused,
                     constraints: BoxConstraints(
                     ),
-                    contentPadding: EdgeInsetsExtension.custom(
+                    contentPadding: CustomEdgeInsets(
                       horizontal: paddingHorizontal,
                       vertical: paddingVertical,
                     ),

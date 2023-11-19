@@ -5,58 +5,37 @@ import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/get_it_helper.dart';
 
 enum DefaultTextSizes {
-  little,
-  small,
-  medium,
-  large,
-  extra,
-  enormous,
-} extension ExtensionTextSizes on DefaultTextSizes{
-  double get value {
-    switch(this){
-      case DefaultTextSizes.little: return 9;
-      case DefaultTextSizes.small: return 12;
-      case DefaultTextSizes.medium: return 16;
-      case DefaultTextSizes.large: return 18;
-      case DefaultTextSizes.extra: return 24;
-      case DefaultTextSizes.enormous: return 32;
-    }
-  }
+  little(9),
+  small(12),
+  medium(16),
+  large(18),
+  extra(24),
+  enormous(32);
+  const DefaultTextSizes(this.value);
+  final double value;
 }
 
 enum DefaultTextFamily{
-  roboto,
-  permanentMarker,
-  magneto,
-} extension ExtensionTextFamily on DefaultTextFamily{
-  String get value {
-    switch(this){
-      case DefaultTextFamily.roboto: return "Roboto";
-      case DefaultTextFamily.permanentMarker: return "Permanent Marker";
-      case DefaultTextFamily.magneto: return "Magneto";
-    }
-  }
+  roboto("Roboto"),
+  permanentMarker("Permanent Marker"),
+  magneto("Magneto");
+  const DefaultTextFamily(this.value);
+  final String value;
 }
 
 enum DefaultTextWeight{
-  hair,
-  thin,
-  regular,
-  bold,
-  thick,
-} extension ExtensionTextWeight on DefaultTextWeight{
-  FontWeight get value {
-    switch(this){
-      case DefaultTextWeight.hair: return FontWeight.w100;
-      case DefaultTextWeight.thin: return FontWeight.w300;
-      case DefaultTextWeight.regular: return FontWeight.w400;
-      case DefaultTextWeight.bold: return FontWeight.w700;
-      case DefaultTextWeight.thick: return FontWeight.w900;
-    }
-  }
+  hair(FontWeight.w100),
+  thin(FontWeight.w300),
+  regular(FontWeight.w400),
+  bold(FontWeight.w700),
+  thick(FontWeight.w900);
+  const DefaultTextWeight(this.value);
+  final FontWeight value;
 }
 
+
 class TextWidget extends StatelessWidget {
+  static final Color defaultColor = getIt<AppColor>().ink;
   final String text;
   final Key? key;
   final TextDirection? textDirection;
@@ -115,7 +94,7 @@ class TextWidget extends StatelessWidget {
     Color? strokeColor,
     TextDirection? textDirection,
   }){
-    textColor ??= getIt<AppColor>().ink;
+    textColor ??= defaultColor;
     final paint = Paint();
     paint.color = textColor;
     paint.style = PaintingStyle.fill;

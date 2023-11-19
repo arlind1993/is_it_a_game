@@ -1,7 +1,13 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+class CustomEdgeInsets extends EdgeInsets{
+  CustomEdgeInsets._(
+    double left,
+    double right,
+    double bottom,
+    double top,
+  ) : super.fromLTRB(left, top, right, bottom);
 
-extension EdgeInsetsExtension on EdgeInsets{
-  static EdgeInsets custom({
+  factory CustomEdgeInsets({
     double? all,
     double? horizontal,
     double? vertical,
@@ -32,6 +38,6 @@ extension EdgeInsetsExtension on EdgeInsets{
     if(right!=null) _right = right;
     if(top!=null) _top = top;
     if(bottom!=null) _bottom = bottom;
-    return EdgeInsets.fromLTRB(_left, _top, _right, _bottom);
+    return CustomEdgeInsets._(_left, _top, _right, _bottom);
   }
 }

@@ -38,7 +38,6 @@ Future<void> main() async {
     guardedMain,
     crashlytics: crashlytics,
   );
-  print("^((?![${RegExTensions.emailNonConsecutive}][${RegExTensions.emailNonConsecutive}]).)*\$");
 }
 
 void guardedMain() {
