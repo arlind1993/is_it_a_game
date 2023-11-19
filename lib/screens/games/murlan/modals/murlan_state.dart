@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 import '../../../cards/deck_model.dart';
 import 'card_murlan_model.dart';
 import 'player_murlan_model.dart';
@@ -5,6 +7,7 @@ import 'previous_murlan_game_stats.dart';
 import 'turn_murlan_model.dart';
 
 class MurlanState{
+  ValueNotifier<String?> currentError = ValueNotifier(null);
   List<Map<String, int>> rankings;
   int playerCount;
   DeckModel deck;
@@ -31,19 +34,29 @@ class MurlanState{
         p = "pId_$i";
       }
       deck.cards.removeRange(deckLength - (deckLength ~/ (playerCount - i)), deckLength);
-      players.add(PlayerMurlanModel(playerId: "pId_$i", importCards: cards));
+      players.add(PlayerMurlanModel(playerId: "pId_$i", cards: cards));
     }
     playerTurn = p!;
   }
 
+  setErrorValue(String? value){
+    print("setErrorValue($value)");
+    if(currentError.value == value){
+      currentError.notifyListeners();
+    }else{
+      currentError.value = value;
+    }
+  }
+
   bool cardCombinationPossible(List<CardMurlanModel> cards){
     if(cards.isEmpty) {
+      setErrorValue("No cards were selected");
       return false;
     }else if(cards.length == 1 || cards.length == 2 || cards.length == 3 ||cards.length == 4) {
       int value = cards[0].murlanValue;
       for(int i = 1; i < cards.length; i++){
         if(cards[i].murlanValue != value){
-          print("NOs of $value");
+          setErrorValue("All the selected cards have to be the same");
           return false;
         }
       }
@@ -70,11 +83,11 @@ class MurlanState{
     List<int> cardsVal = cards.map((e) => e.murlanValue).toList();
     for(int i = 0; i < cards.length - 1; i++){
       if(cardsVal[i] == cardsVal[i+1]){
-        print("Same cards selected");
+        setErrorValue("The Color combination can't have 2 of the same cards");
         return false;
       }
     }
-    print("Diferent cards selected");
+    print("Different cards selected");
     for(int i = 0; i < link.length; i++){
       print(i);
       if(link[i] == cardsVal.first){
@@ -160,33 +173,48 @@ class MurlanState{
         }
       }
     }
+    if(isFlush){
+      setErrorValue("The selected cards are not consecutive or not a flush");
+    }else{
+      setErrorValue("The selected cards are not consecutive");
+    }
     return false;
   }
 
   bool throwCards(List<CardMurlanModel> cardsThrown, PlayerMurlanModel player){
     print("CardsThrown: $cardsThrown");
+    print(table);
     if(!cardCombinationPossible(cardsThrown)) return false;
-    TurnMurlanModel? lastTurn;
-    if(table.length >= 1) {
-      for (int i = table.length - 1; i <= 0; i--) {
+    MapEntry<int, TurnMurlanModel>? lastTurn;
+    if(table.isNotEmpty) {
+      for (int i = table.length - 1; i >= 0; i--) {
         if (!table[i].passed) {
-          lastTurn = table[i];
+          lastTurn = MapEntry(i, table[i]);
           break;
         }
       }
     }
+    print("last turn $lastTurn");
     if(lastTurn == null){
-      print("No last turn");
-      if(cardsThrown.any((element) => element.number == 3 && element.suit == 1)){
-        player.cards.removeWhere((element) => cardsThrown.contains(element));
-        return addToTable(table, player, cardsThrown);
+      if(rankings.isEmpty){
+        if(cardsThrown.any((element) => element.number == 3 && element.suit == 1)) {
+          return addToTable(table, player, cardsThrown);
+        }else{
+          setErrorValue("The selected cards must contain a 3♠ (three of spades)");
+        }
+      }else{
+        if(playerTurn == rankings.last.keys.last){
+          return addToTable(table, player, cardsThrown);
+        }
       }
+    }else if(lastTurn.value.playerIdPlayedCards == playerTurn || allPassedForNextPlayerTurn(lastTurn, table, player)){
+      return addToTable(table, player, cardsThrown);
     }else{
-      bool lastTurnWasFlush = cardCombinationColor(lastTurn.cardsPlayed, isFlush: true);
-      bool lastTurnWasBoom = isBoom(lastTurn.cardsPlayed);
+      bool lastTurnWasFlush = cardCombinationColor(lastTurn.value.cardsPlayed, isFlush: true);
+      bool lastTurnWasBoom = isBoom(lastTurn.value.cardsPlayed);
       if(cardCombinationColor(cardsThrown, isFlush: true)){
         if(lastTurnWasFlush){
-          if(lastTurn.cardsPlayed.length == cardsThrown.length && (lastTurn.cardsPlayed.first.murlanValue == 13 ? 0: lastTurn.cardsPlayed.first.murlanValue) + 1 == cardsThrown.first.murlanValue){
+          if(lastTurn.value.cardsPlayed.length == cardsThrown.length && (lastTurn.value.cardsPlayed.first.murlanValue == 13 ? 0: lastTurn.value.cardsPlayed.first.murlanValue) + 1 == cardsThrown.first.murlanValue){
             return addToTable(table, player, cardsThrown);
           }
         }else {
@@ -194,11 +222,12 @@ class MurlanState{
         }
       }
       if(lastTurnWasFlush){
+        setErrorValue("The selected cards are not a flush or can't beat last flush");
         return false;
       }
       if(isBoom(cardsThrown)){
         if(lastTurnWasBoom){
-          if(lastTurn.cardsPlayed.first.murlanValue < cardsThrown.first.murlanValue){
+          if(lastTurn.value.cardsPlayed.first.murlanValue < cardsThrown.first.murlanValue){
             return addToTable(table, player, cardsThrown);
           }
         }else {
@@ -206,23 +235,30 @@ class MurlanState{
         }
       }
       if(lastTurnWasBoom){
+        setErrorValue("The selected cards can't beat last boom");
         return false;
       }
 
-      if(cardCombinationColor(lastTurn.cardsPlayed)){
+      if(cardCombinationColor(lastTurn.value.cardsPlayed)){
         if(cardCombinationColor(cardsThrown)){
-          if(lastTurn.cardsPlayed.length == cardsThrown.length && (lastTurn.cardsPlayed.first.murlanValue == 13 ? 0: lastTurn.cardsPlayed.first.murlanValue) + 1 == cardsThrown.first.murlanValue){
+          if(lastTurn.value.cardsPlayed.length == cardsThrown.length && (lastTurn.value.cardsPlayed.first.murlanValue == 13 ? 0: lastTurn.value.cardsPlayed.first.murlanValue) + 1 == cardsThrown.first.murlanValue){
             return addToTable(table, player, cardsThrown);
+          }else{
+            setErrorValue("The selected cards can't beat last color");
           }
         }
       }
 
-      if(lastTurn.cardsPlayed.length >= 1 && lastTurn.cardsPlayed.length <= 3){
-        int fullNo = lastTurn.cardsPlayed.length;
+      if(lastTurn.value.cardsPlayed.length >= 1 && lastTurn.value.cardsPlayed.length <= 3){
+        int fullNo = lastTurn.value.cardsPlayed.length;
         if(isCombinedOfNs(cardsThrown, fullNo)){
-          if(lastTurn.cardsPlayed.first.murlanValue < cardsThrown.first.murlanValue){
+          if(lastTurn.value.cardsPlayed.first.murlanValue < cardsThrown.first.murlanValue){
             return addToTable(table, player, cardsThrown);
+          }else{
+            setErrorValue("The selected cards can't beat last cards thrown");
           }
+        }else{
+          setErrorValue("The selected cards aren't of same length as last cards thrown");
         }
       }
     }
@@ -230,6 +266,7 @@ class MurlanState{
   }
 
   bool addToTable(List<TurnMurlanModel> table, PlayerMurlanModel player, List<CardMurlanModel> cardsToThrow){
+    player.cards.removeWhere((element) => cardsToThrow.contains(element));
     table.add(
       TurnMurlanModel(
         turnCount: table.isEmpty ? 1 : table.last.turnCount + 1,
@@ -244,6 +281,35 @@ class MurlanState{
   }
 
   bool pass(PlayerMurlanModel player){
+    MapEntry<int, TurnMurlanModel>? lastTurn;
+    if(table.isNotEmpty) {
+      for (int i = table.length - 1; i >= 0; i--) {
+        if (!table[i].passed) {
+          lastTurn = MapEntry(i, table[i]);
+          break;
+        }
+      }
+    }
+    if(lastTurn == null){
+      if(rankings.isEmpty){
+        setErrorValue("Its your turn you can't pass it up as you contain a 3♠");
+        return false;
+      }else{
+        if(playerTurn == rankings.last.keys.last){
+          setErrorValue("Its your turn as you were place last last game");
+          return false;
+        }
+      }
+    }else{
+      if(lastTurn.value.playerIdPlayedCards == playerTurn){
+        setErrorValue("Its your free turn, you can play whichever card");
+        return false;
+      }else if(allPassedForNextPlayerTurn(lastTurn, table, player)){
+        setErrorValue("Its your free turn, as everybody passed, you can play whichever card");
+        return false;
+      }
+    }
+
     table.add(
       TurnMurlanModel(
         turnCount: table.isEmpty ? 1 : table.last.turnCount + 1,
@@ -259,6 +325,7 @@ class MurlanState{
     int index = -1;
     for(int i = 0; i< players.length; i++){
       if(players[i].playerId == playerTurn){
+        players[i].cards.forEach((element) => element.selected = false);
         index = i;
       }
     }
@@ -273,6 +340,21 @@ class MurlanState{
     }
 
     return false;
+  }
+
+  bool allPassedForNextPlayerTurn(MapEntry<int, TurnMurlanModel> lastTurn, List<TurnMurlanModel> table, PlayerMurlanModel player) {
+    bool lastTurnPlayerWithoutCards = false;
+    int playersWithCards = 0;
+    for(int i = 0; i < players.length; i++){
+      if(players[i].playerId == lastTurn.value.playerIdPlayedCards){
+        lastTurnPlayerWithoutCards = true;
+      }
+      if(players[i].cards.isNotEmpty){
+        playersWithCards++;
+      }
+    }
+    if(!lastTurnPlayerWithoutCards || playersWithCards == 0) return false;
+    return playersWithCards == table.length - 1 - lastTurn.key;
   }
 
 

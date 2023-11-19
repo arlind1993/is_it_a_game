@@ -43,6 +43,7 @@ dependencies:
   #dio: ^4.0.6
   google_sign_in: ^5.4.2
   sign_in_with_apple: ^4.3.0
+  assorted_layout_widgets: ^8.0.4
 
 dev_dependencies:
   flutter_test:
