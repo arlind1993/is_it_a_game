@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:game_template/screens/cards/card_model.dart';
 import '../../../cards/deck_model.dart';
 import '../widgets/poker_play.dart';
 class MainPokerScreen extends StatefulWidget {
@@ -37,7 +38,7 @@ class _MainPokerScreenState extends State<MainPokerScreen> {
         if(initialised){
           return PokerPlay(
             key: Key("poker board"),
-            deck: DeckModel(),
+            deck: DeckModel(cardType: CardType.poker),
           );
         }else{
           return LayoutBuilder(

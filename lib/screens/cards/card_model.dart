@@ -1,300 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/cards/card_constants.dart';
-import 'package:game_template/services/get_it_helper.dart';
-import 'package:game_template/widgets/text_widget.dart';
+import 'package:flutter_svg/svg.dart';
+import '../../widgets/text_widget.dart';
 
-enum Suit{
-  none,
-  spades,
-  diamonds,
-  clubs,
-  hearts,
-}
-enum Number{
-  ace,
-  two,
-  three,
-  four,
-  five,
-  six,
-  seven,
-  eight,
-  nine,
-  ten,
-  jack,
-  queen,
-  king,
-  blackJoker,
-  redJoker,
+
+enum CardType{
+  murlan,
+  poker,
+  hearts
 }
 
-extension NumberExtension on Number{
-  Map<String, dynamic> get extended{
-    switch(this){
-      case Number.ace: return {
-        "value": 1,
-        "string": "A",
-        "number": this,
-      };
-      case Number.two: return {
-        "value": 2,
-        "string": "2",
-        "number": this,
-      };
-      case Number.three: return {
-        "value": 3,
-        "string": "3",
-        "number": this,
-      };
-      case Number.four: return {
-        "value": 4,
-        "string": "4",
-        "number": this,
-      };
-      case Number.five: return {
-        "value": 5,
-        "string": "5",
-        "number": this,
-      };
-      case Number.six: return {
-        "value": 6,
-        "string": "6",
-        "number": this,
-      };
-      case Number.seven: return {
-        "value": 7,
-        "string": "7",
-        "number": this,
-      };
-      case Number.eight: return {
-        "value": 8,
-        "string": "8",
-        "number": this,
-      };
-      case Number.nine: return {
-        "value": 9,
-        "string": "9",
-        "number": this,
-      };
-      case Number.ten: return {
-        "value": 10,
-        "string": "10",
-        "number": this,
-      };
-      case Number.jack: return {
-        "value": 11,
-        "string": "J",
-        "number": this,
-      };
-      case Number.queen: return {
-        "value": 12,
-        "string": "Q",
-        "number": this,
-      };
-      case Number.king: return {
-        "value": 13,
-        "string": "K",
-        "number": this,
-      };
-      case Number.blackJoker: return {
-        "value": 14,
-        "string": "BJ",
-        "number": this,
-      };
-      case Number.redJoker: return {
-        "value": 15,
-        "string": "RJ",
-        "number": this,
-      };
-    }
-  }
-  static Map<String, dynamic> getExtended(int value){
-    switch(value){
-      case 1: return {
-        "value": value,
-        "string": "A",
-        "number": Number.ace,
-      };
-      case 2: return {
-        "value": value,
-        "string": "2",
-        "number": Number.two,
-      };
-      case 3: return {
-        "value": value,
-        "string": "3",
-        "number": Number.three,
-      };
-      case 4: return {
-        "value": value,
-        "string": "4",
-        "number": Number.four,
-      };
-      case 5: return {
-        "value": value,
-        "string": "5",
-        "number": Number.five,
-      };
-      case 6: return {
-        "value": value,
-        "string": "6",
-        "number": Number.six,
-      };
-      case 7: return {
-        "value": value,
-        "string": "7",
-        "number": Number.seven,
-      };
-      case 8: return {
-        "value": value,
-        "string": "8",
-        "number": Number.eight,
-      };
-      case 9: return {
-        "value": value,
-        "string": "9",
-        "number": Number.nine,
-      };
-      case 10: return {
-        "value": value,
-        "string": "10",
-        "number": Number.ten,
-      };
-      case 11: return {
-        "value": value,
-        "string": "J",
-        "number": Number.jack,
-      };
-      case 12: return {
-        "value": value,
-        "string": "Q",
-        "number": Number.queen,
-      };
-      case 13: return {
-        "value": value,
-        "string": "K",
-        "number": Number.king,
-      };
-      case 14: return {
-        "value": value,
-        "string": "BJ",
-        "number": Number.blackJoker,
-      };
-      case 15: return {
-        "value": value,
-        "string": "RJ",
-        "number": Number.redJoker,
-      };
-      default: throw "not possible value";
-    }
-  }
-}
-extension SuitExtension on Suit{
-  Map<String, dynamic> get extended {
-    switch(this){
-      case Suit.none: return {
-        "value": 0,
-        "icon": " ",
-        "suit": this,
-      };
-      case Suit.spades: return {
-        "value": 1,
-        "icon": "♠",
-        "suit": this,
-      };
-      case Suit.diamonds: return {
-        "value": 2,
-        "icon": "♦",
-        "suit": this,
-      };
-      case Suit.clubs: return {
-        "value": 3,
-        "icon": "♣",
-        "suit": this,
-      };
-      case Suit.hearts: return {
-        "value": 4,
-        "icon": "♥",
-        "suit": this,
-      };
-    }
-  }
-  static Map<String, dynamic> getExtended(int value){
-    switch(value){
-      case 0: return {
-        "value": value,
-        "icon": "  ",
-        "suit": Suit.none,
-      };
-      case 1: return {
-        "value": value,
-        "icon": "♠",
-        "suit": Suit.spades,
-      };
-      case 2: return {
-        "value": value,
-        "icon": "♦",
-        "suit": Suit.diamonds,
-      };
-      case 3: return {
-        "value": value,
-        "icon": "♣",
-        "suit": Suit.clubs,
-      };
-      case 4: return {
-        "value": value,
-        "icon": "♥",
-        "suit": Suit.hearts,
-      };
-      default: throw "non valid Value $value";
-    }
-  }
-}
+class CardModel extends StatelessWidget {
+  static const double SIZE_FACTOR = 3.5;
+  static const Size CARD_SIZE = const Size(25 * SIZE_FACTOR, 35 * SIZE_FACTOR);
+  static const Map<int, Map<String, dynamic>> moreInfoNumbers = {
+    1:  {"display": "A" , "murlanValue": 12},
+    2:  {"display": "2" , "murlanValue": 13},
+    3:  {"display": "3" , "murlanValue": 1 },
+    4:  {"display": "4" , "murlanValue": 2 },
+    5:  {"display": "5" , "murlanValue": 3 },
+    6:  {"display": "6" , "murlanValue": 4 },
+    7:  {"display": "7" , "murlanValue": 5 },
+    8:  {"display": "8" , "murlanValue": 6 },
+    9:  {"display": "9" , "murlanValue": 7 },
+    10: {"display": "10", "murlanValue": 8 },
+    11: {"display": "J" , "murlanValue": 9 },
+    12: {"display": "Q" , "murlanValue": 10},
+    13: {"display": "K" , "murlanValue": 11},
+    14: {"display": "BJ", "murlanValue": 14},
+    15: {"display": "RJ", "murlanValue": 15},
+  };
+  static const Map<int, Map<String, dynamic>> moreInfoSuits = {
+    0: {"display": " ", "name": ""        },
+    1: {"display": "♠", "name": "spades"  },
+    2: {"display": "♦", "name": "diamonds"},
+    3: {"display": "♣", "name": "clubs"   },
+    4: {"display": "♥", "name": "hearts"  },
+  };
 
-class CardModel{
-  static final double SIZE_FACTOR = 3.5;
-  static final double CARD_HEIGHT = 35 * SIZE_FACTOR;
-  static final double CARD_WIDTH = 25 * SIZE_FACTOR;
+  final int number;
+  final int suit;
+  final int actualValue;
+  final CardType cardType;
+  bool isCardSelected;
 
-  int number;
-  int suit;
-  late Widget card;
-
-  Map<String, dynamic> get numberExtended => NumberExtension.getExtended(number);
-  Map<String, dynamic> get suitExtended => SuitExtension.getExtended(suit);
   CardModel({
     required this.number,
     required this.suit,
-  }){
-    String? numberString = NumberExtension.getExtended(number)["string"];
-    String? suitIcon = SuitExtension.getExtended(suit)["icon"];
-    Suit? suitDefinition = SuitExtension.getExtended(suit)["suit"];
+    required this.cardType,
+    this.isCardSelected = false,
+  }): actualValue = moreInfoNumbers[number]!["${cardType.name}Value"]!;
 
-    card = IndexedStack(
-      index: 2,
-      children: [
-        Container(
-          color: Colors.white,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(2, (indexR) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(2, (index) => RotatedBox(
-                quarterTurns: indexR == 0 ? 0 : 2,
-                child: TextWidget(
-                    text: "$numberString\n$suitIcon"
-                ),
-              ))
-            )),
-          ),
-        ),
-        getIt<CardConstants>().cardBack,
-        getIt<CardConstants>().cardImageImporter(
-          "$numberString${suitDefinition != null && suitDefinition != Suit.none ? "_${suitDefinition.name}" : ""}"
-        )
-      ],
-    );
+  SvgPicture get cardBack => SvgPicture.asset("assets/images/cards/back.svg");
+  SvgPicture get cardImageImporter => SvgPicture.asset(
+    "assets/images/cards/$numberDisplay${suit == 0? "":"_"}$suitName.svg"
+  );
+  String get  numberDisplay => moreInfoNumbers[number]!["display"]!;
+  String get suitDisplay => moreInfoSuits[suit]!["display"]!;
+  String get suitName => moreInfoSuits[suit]!["name"]!;
+
+  void toggleCardSelected(){
+    isCardSelected = !isCardSelected;
   }
+
 
   @override
   bool operator ==(Object other) {
@@ -302,7 +69,34 @@ class CardModel{
   }
 
   @override
-  String toString() {
-    return "${numberExtended["string"]}${suitExtended["icon"]}";;
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return moreInfoNumbers[number]!["display"]! + moreInfoSuits[suit]!["display"]!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final int showChildPos = 2;
+    return IndexedStack(
+      index: showChildPos,
+      children: [
+        Container(
+          color: Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(2, (indexR) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(2, (index) => RotatedBox(
+                  quarterTurns: indexR == 0 ? 0 : 2,
+                  child: TextWidget(
+                      text: "$numberDisplay\n$suitDisplay"
+                  ),
+                ))
+            )),
+          ),
+        ),
+        cardBack,
+        cardImageImporter
+      ],
+    );
   }
 }

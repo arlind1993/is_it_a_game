@@ -1,5 +1,6 @@
 import 'package:game_template/screens/account/account_model.dart';
 import 'package:game_template/services/firebase/firebase_rtdb.dart';
+import 'package:game_template/services/get_it_helper.dart';
 
 class AccountInternet{
   static AccountInternet _accountInternet = AccountInternet._();
@@ -9,14 +10,15 @@ class AccountInternet{
   AccountInternet._();
 
   Future<AccountModel> getUser(String userId){
-    return FirebaseRTDB().gatherFutureData(
+
+    return global.db.gatherFutureData(
       ref: "users",
       child: userId
     ).then((value) => AccountModel.fromRtdb(value));
   }
 
   Future postUser(AccountModel accountModel){
-    return FirebaseRTDB().modifyData(
+    return global.db.modifyData(
       dataChange: DataChange.Insert,
       updateIfAlreadyInserted: true,
       ref: "users",

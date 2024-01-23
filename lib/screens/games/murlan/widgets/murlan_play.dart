@@ -72,7 +72,7 @@ class MurlanPlay extends StatelessWidget {
             ...playerPositions.entries.map((e) {
               bool thisPlayersTurn = murlanState.value.players[e.key-1].playerId == murlanState.value.playerTurn;
 
-              double wholeCardStackWidth = (murlanState.value.players[e.key-1].initCount - 1) * betweenCardsSpacing + CardModel.CARD_WIDTH;
+              double wholeCardStackWidth = (murlanState.value.players[e.key-1].initCount - 1) * betweenCardsSpacing + CardModel.CARD_SIZE.width;
               double? valNR = e.value != Direction.right ? 0 : null;
               double? valNL = e.value != Direction.left ? 0 : null;
               double? valNT = e.value != Direction.top ? 0 : null;
@@ -91,10 +91,10 @@ class MurlanPlay extends StatelessWidget {
               //print(turns);
               return [
                 Positioned(
-                left: e.value == Direction.left ? -CardModel.CARD_HEIGHT/2 : valNR,
-                bottom: e.value == Direction.bottom ? -CardModel.CARD_HEIGHT/2 :  valNT,
-                right: e.value == Direction.right ? -CardModel.CARD_HEIGHT/2 : valNL,
-                top: e.value == Direction.top ? -CardModel.CARD_HEIGHT/2 : valNB,
+                left: e.value == Direction.left ? -CardModel.CARD_SIZE.height/2 : valNR,
+                bottom: e.value == Direction.bottom ? -CardModel.CARD_SIZE.height/2 :  valNT,
+                right: e.value == Direction.right ? -CardModel.CARD_SIZE.height/2 : valNL,
+                top: e.value == Direction.top ? -CardModel.CARD_SIZE.height/2 : valNB,
                 child: RotatedBox(
                   quarterTurns: turns,
                   child: Center(
@@ -104,7 +104,7 @@ class MurlanPlay extends StatelessWidget {
                           child: GestureDetector(
                             onTapUp: (details) {
                               if(thisPlayersTurn){
-                                murlanState.value.players[e.key-1].cards[index].toggle();
+                                murlanState.value.players[e.key-1].cards[index].toggleCardSelected();
                                 murlanState.notifyListeners();
                               }
                             },
@@ -112,19 +112,19 @@ class MurlanPlay extends StatelessWidget {
                             child: Container(
                               margin: EdgeInsets.only(
                                 left: index * betweenCardsSpacing,
-                                top: murlanState.value.players[e.key-1].cards[index].selected ? 0: cardSelectedSpacing,
-                                bottom: murlanState.value.players[e.key-1].cards[index].selected ? cardSelectedSpacing: 0
-                              ),height: CardModel.CARD_HEIGHT,
+                                top: murlanState.value.players[e.key-1].cards[index].isCardSelected ? 0: cardSelectedSpacing,
+                                bottom: murlanState.value.players[e.key-1].cards[index].isCardSelected ? cardSelectedSpacing: 0
+                              ),height: CardModel.CARD_SIZE.height,
                               clipBehavior: Clip.hardEdge,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(5),
                                 border: Border.all()
                               ),
-                              width: CardModel.CARD_WIDTH,
+                              width: CardModel.CARD_SIZE.width,
                               child: Stack(
                                 children: [
                                   Positioned.fill(
-                                    child: murlanState.value.players[e.key-1].cards[index].card
+                                    child: murlanState.value.players[e.key-1].cards[index]
                                   ),
                                   Positioned.fill(child: IgnorePointer(child: Container(
                                     color: thisPlayersTurn ? null : Color(0x88ffffff)
@@ -140,10 +140,10 @@ class MurlanPlay extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: e.value == Direction.left ? CardModel.CARD_HEIGHT/2 + cardSelectedSpacing + actionToCardSpacing : valNR,
-                bottom: e.value == Direction.bottom ? CardModel.CARD_HEIGHT/2 + cardSelectedSpacing + actionToCardSpacing :  valNT,
-                right: e.value == Direction.right ? CardModel.CARD_HEIGHT/2 + cardSelectedSpacing + actionToCardSpacing : valNL,
-                top: e.value == Direction.top ? CardModel.CARD_HEIGHT/2 + cardSelectedSpacing + actionToCardSpacing : valNB,
+                left: e.value == Direction.left ? CardModel.CARD_SIZE.height/2 + cardSelectedSpacing + actionToCardSpacing : valNR,
+                bottom: e.value == Direction.bottom ? CardModel.CARD_SIZE.height/2 + cardSelectedSpacing + actionToCardSpacing :  valNT,
+                right: e.value == Direction.right ? CardModel.CARD_SIZE.height/2 + cardSelectedSpacing + actionToCardSpacing : valNL,
+                top: e.value == Direction.top ? CardModel.CARD_SIZE.height/2 + cardSelectedSpacing + actionToCardSpacing : valNB,
                 child: Center(
                   child: RotatedBox(
                       quarterTurns: turns,
@@ -153,7 +153,7 @@ class MurlanPlay extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             ButtonWidget(
-                              textWidget: TextWidget(text: "Pass", textColor: thisPlayersTurn ? getIt<AppColor>().ink : Colors.grey),
+                              textWidget: TextWidget(text: "Pass", textColor: thisPlayersTurn ? global.color.ink : Colors.grey),
                               action: thisPlayersTurn ? (){
                                 bool res = murlanState.value.pass(murlanState.value.players[e.key-1]);
                                 if(res){
@@ -163,9 +163,9 @@ class MurlanPlay extends StatelessWidget {
                               }: null,
                             ),
                             ButtonWidget(
-                              textWidget: TextWidget(text: "Throw", textColor: thisPlayersTurn ? getIt<AppColor>().ink : Colors.grey),
+                              textWidget: TextWidget(text: "Throw", textColor: thisPlayersTurn ? global.color.ink : Colors.grey),
                               action: thisPlayersTurn ? (){
-                                bool res = murlanState.value.throwCards(murlanState.value.players[e.key-1].cards.where((element) => element.selected).toList(), murlanState.value.players[e.key-1]);
+                                bool res = murlanState.value.throwCards(murlanState.value.players[e.key-1].cards.where((element) => element.isCardSelected).toList(), murlanState.value.players[e.key-1]);
                                 if(res){
                                   print("Changed");
                                   murlanState.notifyListeners();
@@ -199,7 +199,7 @@ class MurlanPlay extends StatelessWidget {
               ),
               ];
             }).expand((element) => element).toList(),
-            ...murlanState.value.table.asMap().entries.map((e) {
+            ...murlanState.value.tableState.asMap().entries.map((e) {
               //print("${e.key} -> ${e.value.cardsPlayed}");
               return Positioned(
                 top: 20,
@@ -213,19 +213,19 @@ class MurlanPlay extends StatelessWidget {
                       angle : e.value.angled,
                       child: RowSuper(
                         mainAxisSize: MainAxisSize.min,
-                        innerDistance: betweenCardsSpacing - CardModel.CARD_WIDTH,
+                        innerDistance: betweenCardsSpacing - CardModel.CARD_SIZE.width,
                         children: e.value.cardsPlayed.map((el){
                           return Container(
-                            width: CardModel.CARD_WIDTH,
-                            height: CardModel.CARD_HEIGHT,
+                            width: CardModel.CARD_SIZE.width,
+                            height: CardModel.CARD_SIZE.height,
                             clipBehavior: Clip.hardEdge,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
                               border: Border.all(
-                                  color: e.key == murlanState.value.table.length - 1 ? Colors.red : Colors.black
+                                  color: e.key == murlanState.value.tableState.length - 1 ? Colors.red : Colors.black
                               )
                             ),
-                            child: el.card
+                            child: el
                           );
                         }).toList(),
                       ),

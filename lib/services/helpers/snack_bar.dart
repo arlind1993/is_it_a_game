@@ -4,6 +4,10 @@
 
 import 'package:flutter/material.dart';
 class CustomSnackBar{
+  factory CustomSnackBar.singleton() => CustomSnackBar._();
+  CustomSnackBar._();
+
+
   /// Shows [message] in a snack bar as long as a [ScaffoldMessengerState]
   /// with global key [scaffoldMessengerKey] is anywhere in the widget tree.
   void showSnackBar(String message) {

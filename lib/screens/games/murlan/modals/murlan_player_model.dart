@@ -1,10 +1,10 @@
-import 'card_murlan_model.dart';
+import '../../../cards/card_model.dart';
 
-class PlayerMurlanModel{
+class MurlanPlayerModel{
   String playerId;
-  List<CardMurlanModel> cards;
+  List<CardModel> cards;
   int initCount;
-  PlayerMurlanModel({
+  MurlanPlayerModel({
     required this.playerId,
     this.cards = const[],
   }): initCount = cards.length;

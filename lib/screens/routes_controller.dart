@@ -1,18 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:game_template/screens/account/account_screen.dart';
-import 'package:game_template/screens/games/sudoku/screen/main_sudoku_screen.dart';
 import 'package:game_template/screens/scaffold_screen.dart';
 import 'package:go_router/go_router.dart';
 
-import '../services/app_styles/app_color.dart';
 import '../services/get_it_helper.dart';
-import '../services/helpers/transition.dart';
 import 'account/settings_screen.dart';
 import 'games/game_selector_screen.dart';
-import 'games/chess/screen/main_chess_screen.dart';
 import 'games/murlan/screen/main_murlan_screen.dart';
 import 'games/poker/screen/main_poker_screen.dart';
-import 'games/wire/main_wire_screen.dart';
 import 'main_menu_screen.dart';
 
 class RoutesController{
@@ -48,25 +43,9 @@ class RoutesController{
                 },
                 routes: [
                   GoRoute(
-                      path: 'chess',
-                      pageBuilder: (context, state) {
-                        return getIt<CustomTransitionBuilder>().build<void>(
-                          child: ScaffoldScreen(
-                            pathOnBackAction: '/play',
-                            obstructViewBottomBar: true,
-                            visibleBottomBar: false,
-                            child: MainChessScreen(
-                              key: const Key('chess'),
-                            ),
-                          ),
-                          color: getIt<AppColor>().greenContrast,
-                        );
-                      },
-                  ),
-                  GoRoute(
                     path: 'murlan',
                     pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
+                      return global.transitionBuilder.build<void>(
                         child: ScaffoldScreen(
                           pathOnBackAction: '/play',
                           obstructViewBottomBar: true,
@@ -75,14 +54,14 @@ class RoutesController{
                             key: const Key('murlan'),
                           ),
                         ),
-                        color: getIt<AppColor>().greenContrast,
+                        color: global.color.greenContrast,
                       );
                     },
                   ),
                   GoRoute(
                     path: 'poker',
                     pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
+                      return global.transitionBuilder.build<void>(
                         child: ScaffoldScreen(
                           pathOnBackAction: '/play',
                           obstructViewBottomBar: true,
@@ -91,42 +70,10 @@ class RoutesController{
                             key: const Key('poker'),
                           ),
                         ),
-                        color: getIt<AppColor>().greenContrast,
+                        color: global.color.greenContrast,
                       );
                     },
                   ),
-                  GoRoute(
-                    path: 'sudoku',
-                    pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
-                        child: ScaffoldScreen(
-                          pathOnBackAction: '/play',
-                          obstructViewBottomBar: true,
-                          visibleBottomBar: false,
-                          child: MainSudokuScreen(
-                            key: const Key('sudoku'),
-                          ),
-                        ),
-                        color: getIt<AppColor>().greenContrast,
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'wire',
-                    pageBuilder: (context, state) {
-                      return getIt<CustomTransitionBuilder>().build<void>(
-                        child: ScaffoldScreen(
-                          pathOnBackAction: '/play',
-                          obstructViewBottomBar: true,
-                          visibleBottomBar: false,
-                          child: MainWireScreen(
-                            key: const Key('wire'),
-                          ),
-                        ),
-                        color: getIt<AppColor>().greenContrast,
-                      );
-                    },
-                  )
                 ]
             ),
             GoRoute(

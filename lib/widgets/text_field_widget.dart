@@ -83,7 +83,7 @@ enum TextFieldTypes{
 }
 
 class TextFieldWidget extends StatelessWidget {
-  static final Color defaultColor = getIt<AppColor>().ink;
+  static final Color defaultColor = global.color.ink;
   final String unique;
   final Widget? prefixIcon;
   final Widget? suffixIcon;

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/screens_controller.dart';
-import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/services/extensions/string_extensions.dart';
-import 'package:game_template/services/get_it_helper.dart';
 
+import '../../services/get_it_helper.dart';
 import '../../widgets/text_widget.dart';
 
 class GameSelector extends StatefulWidget {
@@ -16,18 +14,16 @@ class GameSelector extends StatefulWidget {
 class _GameSelectorState extends State<GameSelector> {
 
   Map<String, bool> games_loading = {
-    "chess": false,
     "murlan": false,
     "poker": false,
     "sudoku": false,
-    "wire": false,
   };
 
   Future openGame(String actualGame) async{
     setState(() {
       games_loading[actualGame] = true;
     });
-    getIt<ScreensController>().value = "/play/$actualGame";
+    global.screenController.value = "/play/$actualGame";
     setState(() {
       games_loading[actualGame] = false;
     });
@@ -77,7 +73,7 @@ class _GameSelectorState extends State<GameSelector> {
                             );
                           }else{
                             return CircularProgressIndicator(
-                              color: getIt<AppColor>().greenMain,
+                              color: global.color.greenMain,
                             );
                           }
                         }

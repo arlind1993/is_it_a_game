@@ -1,39 +1,28 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 
-class InternetConnection{
-  static InternetConnection _internetConnection = InternetConnection._();
-  InternetConnection._();
-  factory InternetConnection(){
-    return _internetConnection;
-  }
-
-  final Connectivity connectivity = Connectivity();
-  late Stream<ConnectivityResult> connectivityStream;
-  bool connected = true;
-
+class InternetConnection extends ValueNotifier<bool>{
+  factory InternetConnection.singleton() => InternetConnection._(true);
+  InternetConnection._(super._value);
 
   Future<InternetConnection> initialise() async{
-    await connectivity.checkConnectivity().then((value) async{
-      connected = hasConnection(value);
+    final Connectivity connectivity = Connectivity();
+    if(kDebugMode) logChanges();
+    connectivity.onConnectivityChanged.listen((event){
+      value = hasConnection(event);
     });
-    connectivityStream = connectivity.onConnectivityChanged.asBroadcastStream();
-    connectivityStream.listen((event) async{
-      connected = hasConnection(event);
-      log("Connected: $connected");
-    });
-    return this;
+    return connectivity.checkConnectivity().then((event) async{
+      value = hasConnection(event);
+    }).then((value) => this);
   }
+
+  void logChanges() => addListener(() {
+    print("Connected: $value");
+  });
+
+
   bool hasConnection(ConnectivityResult connectivityResult){
     return connectivityResult==ConnectivityResult.mobile || connectivityResult==ConnectivityResult.wifi;
-  }
-
-  Future<bool> isConnected() async {
-    return connectivity.checkConnectivity().then((value) => hasConnection(value));
-  }
-
-  Future<bool> isNotConnected() async {
-    return connectivity.checkConnectivity().then((value) => !hasConnection(value));
   }
 }

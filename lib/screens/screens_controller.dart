@@ -1,7 +1,6 @@
-
-
 import 'package:flutter/material.dart';
 
 class ScreensController extends ValueNotifier<String>{
-  ScreensController(super.value);
+  factory ScreensController.singleton() => ScreensController._("/");
+  ScreensController._(super.value);
 }

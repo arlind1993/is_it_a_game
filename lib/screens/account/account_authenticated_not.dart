@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/services/firebase/firebase_auth.dart';
 import 'package:game_template/widgets/button_widget.dart';
 import 'package:game_template/widgets/text_widget.dart';
 
 import '../../services/get_it_helper.dart';
 import '../../widgets/text_field_widget.dart';
-import '../screens_controller.dart';
 
 class AccountUnauthenticated extends StatefulWidget {
   const AccountUnauthenticated({super.key});
@@ -45,20 +43,20 @@ class _AccountUnauthenticatedState extends State<AccountUnauthenticated> {
       fields.forEach((element) => element.submitted.value = true);
       bool allValid = fields.every((element) => element.isValid());
       if(allValid){
-        getIt<FirebaseAuthUser>().registerEmail(
+        global.auth.registerEmail(
           fields[0].editingController.text,
           fields[1].editingController.text,
         ).then((value){
           if(value != null){
-            getIt<ScreensController>().notifyListeners();
+            global.screenController.notifyListeners();
             setState(() {});
           }else{
-            getIt<FirebaseAuthUser>().signInWithEmail(
+            global.auth.signInWithEmail(
               fields[0].editingController.text,
               fields[1].editingController.text,
             ).then((value){
               if(value != null){
-                getIt<ScreensController>().notifyListeners();
+                global.screenController.notifyListeners();
                 setState(() {});
               }
             });

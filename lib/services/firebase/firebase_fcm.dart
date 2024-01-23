@@ -1,18 +1,21 @@
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+@pragma("vm:entry-point")
+void _handleMessages(RemoteMessage event) {
+
+}
+
 class FirebaseNotifications{
-  static FirebaseNotifications _firebaseNotifications= FirebaseNotifications._();
-  FirebaseMessaging messaging;
+  factory FirebaseNotifications.singleton() => FirebaseNotifications._();
+  FirebaseNotifications._();
+
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
   String? token;
 
-  FirebaseNotifications._():
-    messaging = FirebaseMessaging.instance;
-  factory FirebaseNotifications(){
-    return _firebaseNotifications;
-  }
+  
+  
   Future<FirebaseNotifications> initialise() async{
-    messaging = FirebaseMessaging.instance;
     await notificationPermissions();
 
     messaging.setForegroundNotificationPresentationOptions(
@@ -21,9 +24,8 @@ class FirebaseNotifications{
       alert: true,
     );
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {});
-
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {});
+    FirebaseMessaging.onMessage.listen(_handleMessages);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessages);
     return this;
   }
 
@@ -47,6 +49,5 @@ class FirebaseNotifications{
       log("User declined or hasn't accepted permission");
     }
   }
-
-
+  
 }

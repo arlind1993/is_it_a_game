@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:game_template/screens/cards/card_model.dart';
 import '../../../cards/deck_model.dart';
 import '../widgets/murlan_play.dart';
 class MainMurlanScreen extends StatefulWidget {
@@ -37,7 +38,7 @@ class _MainMurlanScreenState extends State<MainMurlanScreen> {
         if(initialised){
           return MurlanPlay(
             key: Key("chess board"),
-            deck: DeckModel(),
+            deck: DeckModel(cardType: CardType.murlan),
           );
         }else{
           return LayoutBuilder(

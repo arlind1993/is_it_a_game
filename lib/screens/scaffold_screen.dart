@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/screens/screens_controller.dart';
 import 'package:game_template/services/get_it_helper.dart';
 import 'package:game_template/widgets/bottom_nav_bar.dart';
 
@@ -24,7 +23,7 @@ class ScaffoldScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async{
-        getIt<ScreensController>().value = pathOnBackAction;
+        global.screenController.value = pathOnBackAction;
         return true;
       },
       child: Scaffold(

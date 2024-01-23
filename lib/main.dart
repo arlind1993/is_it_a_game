@@ -8,10 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:game_template/provider/app_lifecycle.dart';
 import 'package:game_template/provider/settings_controller.dart';
 import 'package:game_template/screens/routes_controller.dart';
-import 'package:game_template/services/app_styles/app_color.dart';
-import 'package:game_template/services/extensions/string_extensions.dart';
 import 'package:game_template/services/get_it_helper.dart';
-import 'package:game_template/services/helpers/snack_bar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
@@ -51,19 +48,19 @@ void guardedMain() {
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
   );
-  getItSetUp();
 
   runApp(
-    MyApp(),
+    MyApp(routesController: RoutesController()),
   );
 }
 
 
 
 class MyApp extends StatelessWidget {
-
+  final RoutesController routesController;
   const MyApp({
     super.key,
+    required this.routesController
   });
 
   @override
@@ -73,28 +70,31 @@ class MyApp extends StatelessWidget {
         providers: [
           ChangeNotifierProvider(create: (context) => SettingsController()),
         ],
-        child: Builder(builder: (context) {
-          return MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'Is it a Game?',
-            theme: ThemeData.from(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: getIt<AppColor>().beigeMain,
-                background: getIt<AppColor>().greenContrast,
-              ),
-              textTheme: TextTheme(
-                bodyMedium: TextStyle(
-                  color: getIt<AppColor>().ink,
+        child: FutureBuilder(
+          future: global.getItSetUp(),
+          builder: (context, snapshot) {
+            return MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              title: 'Is it a Game?',
+              theme: ThemeData.from(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: global.color.beigeMain,
+                  background: global.color.greenContrast,
                 ),
+                textTheme: TextTheme(
+                  bodyMedium: TextStyle(
+                    color: global.color.ink,
+                  ),
+                ),
+                useMaterial3: true,
               ),
-              useMaterial3: true,
-            ),
-            routeInformationProvider: getIt<RoutesController>().router.routeInformationProvider,
-            routeInformationParser: getIt<RoutesController>().router.routeInformationParser,
-            routerDelegate: getIt<RoutesController>().router.routerDelegate,
-            scaffoldMessengerKey: getIt<CustomSnackBar>().scaffoldMessengerKey,
-          );
-        }),
+              routeInformationProvider: routesController.router.routeInformationProvider,
+              routeInformationParser: routesController.router.routeInformationParser,
+              routerDelegate: routesController.router.routerDelegate,
+              scaffoldMessengerKey: global.snackBar.scaffoldMessengerKey,
+            );
+          }
+        ),
       ),
     );
   }

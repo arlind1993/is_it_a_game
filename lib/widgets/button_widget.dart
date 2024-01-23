@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:game_template/services/app_styles/app_color.dart';
 import 'package:game_template/widgets/text_field_widget.dart';
 import 'text_widget.dart';
 import '../services/get_it_helper.dart';
 
 class ButtonWidget extends StatelessWidget {
-  static final Color defaultColor = getIt<AppColor>().ink;
+  static final Color defaultColor = global.color.ink;
 
   final Key? key;
   final Widget? prefixIcon;

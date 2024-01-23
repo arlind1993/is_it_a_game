@@ -4,6 +4,9 @@ import 'package:logging/logging.dart';
 
 
 class CustomTransitionBuilder{
+  factory CustomTransitionBuilder.singleton() => CustomTransitionBuilder._();
+  CustomTransitionBuilder._();
+
   CustomTransitionPage build<T>({
     required Widget child,
     required Color color,

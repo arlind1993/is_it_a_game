@@ -50,10 +50,10 @@ class PokerPlay extends StatelessWidget {
             ...playerPositions.entries.map((e) {
               print("${e.value} : ${murlanState.value.players[e.key - 1].cards.length}");
               return Positioned(
-                left: e.value == Direction.left ? -CardModel.CARD_HEIGHT/2 : e.value != Direction.right ? 0 : null,
-                bottom: e.value == Direction.bottom ? -CardModel.CARD_HEIGHT/2 :  e.value != Direction.top ? 0 : null,
-                right: e.value == Direction.right ? -CardModel.CARD_HEIGHT/2 :  e.value != Direction.left ? 0 : null,
-                top: e.value == Direction.top ? -CardModel.CARD_HEIGHT/2 :  e.value != Direction.bottom ? 0 : null,
+                left: e.value == Direction.left ? -CardModel.CARD_SIZE.height/2 : e.value != Direction.right ? 0 : null,
+                bottom: e.value == Direction.bottom ? -CardModel.CARD_SIZE.height/2 :  e.value != Direction.top ? 0 : null,
+                right: e.value == Direction.right ? -CardModel.CARD_SIZE.height/2 :  e.value != Direction.left ? 0 : null,
+                top: e.value == Direction.top ? -CardModel.CARD_SIZE.height/2 :  e.value != Direction.bottom ? 0 : null,
                 child: Center(
                   child: Builder(
                     builder: (context) {
@@ -66,8 +66,8 @@ class PokerPlay extends StatelessWidget {
                               "top: ${e.value} == top && ${murlanState.value.players[e.key-1].cards[index].selected} ? 20 : ${e.value} == Direction.left ? ${index * 10} : 0, => ${e.value == Direction.top && murlanState.value.players[e.key-1].cards[index].selected ? 20 : e.value == Direction.left || e.value == Direction.right ? index * 20 : 0}\n"
                               "),");
 
-                          double width = (e.value == Direction.top || e.value == Direction.bottom) ? CardModel.CARD_WIDTH : CardModel.CARD_HEIGHT;
-                          double height = (e.value == Direction.top || e.value == Direction.bottom) ? CardModel.CARD_HEIGHT : CardModel.CARD_WIDTH;
+                          double width = (e.value == Direction.top || e.value == Direction.bottom) ? CardModel.CARD_SIZE.width : CardModel.CARD_SIZE.width;
+                          double height = (e.value == Direction.top || e.value == Direction.bottom) ? CardModel.CARD_SIZE.height : CardModel.CARD_SIZE.height;
                           double left = 0;
                           double top = 0;
 
@@ -116,7 +116,7 @@ class PokerPlay extends StatelessWidget {
                                 ),
                                 child: RotatedBox(
                                   quarterTurns: turns,
-                                  child: murlanState.value.players[e.key-1].cards[index].card
+                                  child: murlanState.value.players[e.key-1].cards[index]
                                 ),
                               ),
                             ),

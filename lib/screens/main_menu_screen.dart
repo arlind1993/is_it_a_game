@@ -17,7 +17,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      getIt<ScreensController>().value = "/play";
+      global.screenController.value = "/play";
     });
     // TODO: implement initState
     super.initState();
@@ -33,7 +33,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             text: "Main menu",
           ),
           TextButton(onPressed: () {
-            getIt<ScreensController>().value = "/play";
+            global.screenController.value = "/play";
 
           }, child: TextWidget(text: "Redirect"))
         ],

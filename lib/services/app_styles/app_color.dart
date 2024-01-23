@@ -1,6 +1,9 @@
 import 'dart:ui';
 
 class AppColor{
+  factory AppColor.singleton() => AppColor._();
+  AppColor._();
+
   Color get beigeSecondary => const Color(0xffcb7629);
   Color get beigeMain => const Color(0xffe49e77);
   Color get brownMain => const Color(0xff6b4526);
